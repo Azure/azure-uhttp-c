@@ -46,7 +46,7 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
 
 #undef ENABLE_MOCKS
 
-#include "uhttp/uhttp.h"
+#include "azure_uhttp_c/uhttp.h"
 
 #define ENABLE_MOCKS
 

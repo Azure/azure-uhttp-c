@@ -57,7 +57,7 @@ set(uhttp_c_files
 )
 
 set(uhttp_h_files
-    ./inc/uhttp/uhttp.h
+    ./inc/azure_uhttp_c/uhttp.h
 )
 
 include_directories(./inc)

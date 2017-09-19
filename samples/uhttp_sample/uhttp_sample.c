@@ -10,7 +10,7 @@
 #include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/socketio.h"
-#include "uhttp/uhttp.h"
+#include "azure_uhttp_c/uhttp.h"
 
 #define HTTP_PORT_NUM       80
 #define HTTPS_PORT_NUM      443
