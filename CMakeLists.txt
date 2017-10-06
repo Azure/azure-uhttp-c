@@ -52,6 +52,16 @@ set(UHTTP_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is wha
 add_subdirectory(./deps/c-utility)
 set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
 
+if (MSVC)
+    detect_architecture("_M_AMD64" x86_64)
+    detect_architecture("_M_IX86" x86)
+    detect_architecture("_M_ARM" ARM)
+else()
+    detect_architecture("__x86_64__" x86_64)
+    detect_architecture("__i386__" x86)
+    detect_architecture("__arm__" ARM)
+endif()
+
 set(uhttp_c_files
     ./src/uhttp.c
 )
