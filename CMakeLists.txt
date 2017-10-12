@@ -9,58 +9,13 @@ option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)"
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 
-#Use solution folders.
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-enable_testing()
-
-macro(compileAsC99)
-  if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-      set (CMAKE_C_FLAGS "--std=c99 ${CMAKE_C_FLAGS}")
-    if (NOT IN_OPENWRT)
-      set (CMAKE_CXX_FLAGS "--std=c++11 ${CMAKE_CXX_FLAGS}")
-    endif()
-    endif()
-  else()
-    set (CMAKE_C_STANDARD 99)
-    set (CMAKE_CXX_STANDARD 11)
-  endif()
-endmacro(compileAsC99)
-
-macro(compileAsC11)
-  if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-      set (CMAKE_C_FLAGS "--std=c11 ${CMAKE_C_FLAGS}")
-      set (CMAKE_C_FLAGS "-D_POSIX_C_SOURCE=200112L ${CMAKE_C_FLAGS}")
-      set (CMAKE_CXX_FLAGS "--std=c++11 ${CMAKE_CXX_FLAGS}")
-    endif()
-  else()
-    set (CMAKE_C_STANDARD 11)
-    set (CMAKE_CXX_STANDARD 11)
-  endif()
-endmacro(compileAsC11)
-
-if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-endif()
-
-compileAsC99()
+# Include the common build rules for the C SDK
+include(deps/c-utility/configs/azure_iot_build_rules.cmake)
 
 set(UHTTP_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
 
 add_subdirectory(./deps/c-utility)
 set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
-
-if (MSVC)
-    detect_architecture("_M_AMD64" x86_64)
-    detect_architecture("_M_IX86" x86)
-    detect_architecture("_M_ARM" ARM)
-else()
-    detect_architecture("__x86_64__" x86_64)
-    detect_architecture("__i386__" x86)
-    detect_architecture("__arm__" ARM)
-endif()
 
 set(uhttp_c_files
     ./src/uhttp.c
@@ -74,12 +29,6 @@ include_directories(./inc)
 include_directories(${SHARED_UTIL_INC_FOLDER})
 
 include("configs/azure_uhttpFunctions.cmake")
-
-IF(WIN32)
-    #windows needs this define
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
-ENDIF(WIN32)
 
 add_library(uhttp ${uhttp_c_files} ${uhttp_h_files})
 target_link_libraries(uhttp aziotsharedutil)
