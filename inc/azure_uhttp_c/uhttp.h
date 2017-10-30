@@ -7,7 +7,6 @@
 #ifdef __cplusplus
 extern "C" {
 #include <cstddef>
-#include <cstdbool>
 #else
 #include <stddef.h>
 #include <stdbool.h>
