@@ -25,11 +25,11 @@ static void on_http_connected(void* callback_ctx, HTTP_CALLBACK_REASON connect_r
     (void)callback_ctx;
     if (connect_result == HTTP_CALLBACK_REASON_OK)
     {
-        (void)printf ("CONNECTED\r\n");
+        (void)printf ("HTTP Connected\r\n");
     }
     else
     {
-        (void)printf ("CONNECTION FAILED\r\n");
+        (void)printf ("HTTP Connection FAILED\r\n");
     }
 }
 
@@ -37,8 +37,9 @@ static void on_http_recv(void* callback_ctx, HTTP_CALLBACK_REASON request_result
 {
     (void)responseHeadersHandle;
     (void)request_result;
-    (void)printf("Content Len: %zu\r\nStatus Code: %d\r\n\r\n", content_len, statusCode);
-    (void)printf("%.*s\r\n", (int)content_len, content);
+    (void)content_len;
+    (void)statusCode;
+    (void)content;
     if (callback_ctx != NULL)
     {
         HTTP_SAMPLE_INFO* http_info = (HTTP_SAMPLE_INFO*)callback_ctx;
@@ -54,13 +55,13 @@ static void on_error(void* callback_ctx, HTTP_CALLBACK_REASON error_result)
 {
     (void)callback_ctx;
     (void)error_result;
-    printf("On Error Called\r\n");
+    printf("HTTP client Error Called\r\n");
 }
 
 static void on_closed_callback(void* callback_ctx)
 {
     (void)callback_ctx;
-    printf("On closed callback\r\n");
+    printf("Connection closed callback\r\n");
 }
 
 static void test_http_get(void)
@@ -82,6 +83,7 @@ static void test_http_get(void)
     }
     else
     {
+        (void)uhttp_client_set_trace(http_handle, true, true);
         if (uhttp_client_open(http_handle, host_name, port_num, on_http_connected, &sample_info) != HTTP_CLIENT_OK)
         {
             (void)printf("FAILED MORE HERE\r\n");
@@ -124,6 +126,7 @@ void test_http_post(void)
     }
     else
     {
+        (void)uhttp_client_set_trace(http_handle, true, true);
         if (uhttp_client_open(http_handle, host_name, port_num, on_http_connected, &sample_info) != HTTP_CLIENT_OK)
         {
             (void)printf("FAILED MORE HERE\r\n");
@@ -183,6 +186,7 @@ int main(void)
         platform_deinit();
     }
 
+    (void)printf("Press any key to continue:");
     (void)getchar();
     return result;
 }

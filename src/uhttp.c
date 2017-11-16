@@ -327,13 +327,20 @@ static int write_data_line(HTTP_CLIENT_HANDLE_DATA* http_data, const unsigned ch
         result = 0;
         if (http_data->trace_on)
         {
-            if (http_data->trace_body)
+            if (length > 0)
             {
-                LOG(AZ_LOG_TRACE, LOG_LINE, "len: %d\r\n%.*s\r\n", (int)length, (int)length, data_line);
+                if (http_data->trace_body)
+                {
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "len: %d\r\n%.*s\r\n", (int)length, (int)length, data_line);
+                }
+                else
+                {
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "<data> len: %d\r\n", (int)length);
+                }
             }
             else
             {
-                LOG(AZ_LOG_TRACE, LOG_LINE, "<data> len: %d\r\n", (int)length);
+                LOG(AZ_LOG_TRACE, LOG_LINE, "len: %d\r\n", (int)length);
             }
         }
     }
@@ -623,13 +630,23 @@ static void on_bytes_received(void* context, const unsigned char* buffer, size_t
             }
             if (http_data->trace_on)
             {
-                if (http_data->trace_body)
+                LOG(AZ_LOG_TRACE, LOG_LINE, "\r\nHTTP Status: %d\r\n", http_data->recv_msg.status_code);
+
+                // Loop through headers
+                size_t count;
+                HTTPHeaders_GetHeaderCount(http_data->recv_msg.resp_header, &count);
+                for (size_t index = 0; index < count; index++)
                 {
-                    LOG(AZ_LOG_TRACE, LOG_LINE, "\r\nReply Status: %d\r\nContent Len: %d\r\n%.*s", http_data->recv_msg.status_code, (int)reply_len, (int)reply_len, reply_data);
+                    char* header;
+                    if (HTTPHeaders_GetHeader(http_data->recv_msg.resp_header, index, &header) == HTTP_HEADERS_OK)
+                    {
+                        LOG(AZ_LOG_TRACE, LOG_LINE, "%s", header);
+                        free(header);
+                    }
                 }
-                else
+                if (http_data->trace_body && reply_len > 0)
                 {
-                    LOG(AZ_LOG_TRACE, LOG_LINE, "\r\nReply Status: %d\r\n<data> Content Len: %d", http_data->recv_msg.status_code, (int)reply_len);
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "\r\n%.*s\r\n", (int)reply_len, reply_data);
                 }
             }
             http_data->recv_msg.on_request_callback(http_data->recv_msg.user_ctx, http_reason, reply_data, reply_len, http_data->recv_msg.status_code, http_data->recv_msg.resp_header);
