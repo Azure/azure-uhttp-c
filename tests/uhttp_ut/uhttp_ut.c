@@ -2078,6 +2078,7 @@ TEST_FUNCTION(uhttp_client_set_X509_cert_invalid_state_fail)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // Cleanup
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
     uhttp_client_destroy(clientHandle);
 }
 
@@ -2168,6 +2169,7 @@ TEST_FUNCTION(uhttp_client_set_trusted_cert_invalid_state_fail)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // Cleanup
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
     uhttp_client_destroy(clientHandle);
 }
 
