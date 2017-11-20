@@ -12,6 +12,12 @@ option(skip_samples "set skip_samples to ON to skip building samples (default is
 # Include the common build rules for the C SDK
 include(deps/c-utility/configs/azure_iot_build_rules.cmake)
 
+if(${use_openssl})
+    add_definitions(-DUSE_OPENSSL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_OPENSSL")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_OPENSSL")
+endif()
+
 #Use solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

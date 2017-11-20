@@ -1008,7 +1008,7 @@ HTTP_CLIENT_RESULT uhttp_client_open(HTTP_CLIENT_HANDLE handle, const char* host
         if (http_data->recv_msg.recv_state != state_initial && http_data->recv_msg.recv_state != state_error && http_data->recv_msg.recv_state != state_closed)
         {
             LogError("Unable to open previously open client.");
-            result = HTTP_CLIENT_ERROR;
+            result = HTTP_CLIENT_INVALID_STATE;
         }
         else if (mallocAndStrcpy_s(&http_data->host_name, host) != 0)
         {
