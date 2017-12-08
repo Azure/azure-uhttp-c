@@ -1385,6 +1385,7 @@ TEST_FUNCTION(uhttp_client_dowork_msg_succeed)
     HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
     (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
     (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    g_on_open_complete(g_on_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
     setup_uhttp_client_dowork_msg_mocks();
@@ -1410,6 +1411,7 @@ TEST_FUNCTION(uhttp_client_dowork_msg_trace_on_succeed)
     (void)uhttp_client_set_trace(clientHandle, true, true);
     (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
     (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    g_on_open_complete(g_on_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
     setup_uhttp_client_dowork_msg_mocks();
@@ -1482,6 +1484,7 @@ TEST_FUNCTION(uhttp_client_dowork_no_msg_succeed)
     HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
     (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
     (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    g_on_open_complete(g_on_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
     setup_uhttp_client_dowork_no_msg_mocks();
@@ -1503,6 +1506,7 @@ TEST_FUNCTION(uhttp_client_dowork_no_msg_fails)
     // arrange
     HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
     (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+    g_on_open_complete(g_on_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
     int negativeTestsInitResult = umock_c_negative_tests_init();

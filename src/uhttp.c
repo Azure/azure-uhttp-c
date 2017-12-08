@@ -81,6 +81,7 @@ typedef struct HTTP_CLIENT_HANDLE_DATA_TAG
     char* x509_cert;
     char* x509_pk;
     char* certificate;
+    int connected;
 } HTTP_CLIENT_HANDLE_DATA;
 
 typedef struct HTTP_SEND_DATA_TAG
@@ -387,7 +388,7 @@ static void on_bytes_received(void* context, const unsigned char* buffer, size_t
 
     if (http_data != NULL && buffer != NULL && len > 0 && http_data->recv_msg.recv_state != state_error)
     {
-        if (http_data->recv_msg.recv_state == state_initial)
+        if (http_data->recv_msg.recv_state == state_initial || http_data->recv_msg.recv_state == state_open)
         {
             if (initialize_received_data(http_data) != 0)
             {
@@ -676,6 +677,7 @@ static void on_xio_close_complete(void* context)
             http_data->on_close_callback(http_data->close_user_ctx);
         }
         http_data->recv_msg.recv_state = state_closed;
+        http_data->connected = 0;
     }
 }
 
@@ -693,6 +695,7 @@ static void on_xio_open_complete(void* context, IO_OPEN_RESULT open_result)
                 http_data->on_connect(http_data->connect_user_ctx, HTTP_CALLBACK_REASON_OK);
             }
             http_data->recv_msg.recv_state = state_open;
+            http_data->connected = 1;
         }
         else
         {
@@ -720,6 +723,7 @@ static void on_io_error(void* context)
         {
             http_data->on_error(http_data->error_user_ctx, HTTP_CALLBACK_REASON_ERROR);
         }
+        http_data->connected = 0;
     }
     else
     {
@@ -1280,27 +1284,19 @@ void uhttp_client_dowork(HTTP_CLIENT_HANDLE handle)
         HTTP_CLIENT_HANDLE_DATA* http_data = (HTTP_CLIENT_HANDLE_DATA*)handle;
         xio_dowork(http_data->xio_handle);
 
-        LIST_ITEM_HANDLE pending_list_item;
-        /* Codes_SRS_UHTTP_07_016: [http_client_dowork shall iterate through the queued Data using the xio interface to send the http request in the following ways...] */
-        while ((pending_list_item = singlylinkedlist_get_head_item(http_data->data_list)) != NULL)
+        // Wait till I'm connected
+        if (handle->connected == 1)
         {
-            HTTP_SEND_DATA* send_data = (HTTP_SEND_DATA*)singlylinkedlist_item_get_value(pending_list_item);
-            if (send_data != NULL)
+            LIST_ITEM_HANDLE pending_list_item;
+            /* Codes_SRS_UHTTP_07_016: [http_client_dowork shall iterate through the queued Data using the xio interface to send the http request in the following ways...] */
+            while ((pending_list_item = singlylinkedlist_get_head_item(http_data->data_list)) != NULL)
             {
-                size_t content_len = BUFFER_length(send_data->content);
-                /* Codes_SRS_UHTTP_07_052: [uhttp_client_dowork shall call xio_send to transmits the header information... ] */
-                if (send_http_data(http_data, send_data->request_type, STRING_c_str(send_data->relative_path), send_data->header_line) != 0)
+                HTTP_SEND_DATA* send_data = (HTTP_SEND_DATA*)singlylinkedlist_item_get_value(pending_list_item);
+                if (send_data != NULL)
                 {
-                    LogError("Failure writing content buffer");
-                    if (http_data->on_error)
-                    {
-                        http_data->on_error(http_data->error_user_ctx, HTTP_CALLBACK_REASON_SEND_FAILED);
-                    }
-                }
-                else if (content_len > 0)
-                {
-                    /* Codes_SRS_UHTTP_07_053: [ Then uhttp_client_dowork shall use xio_send to transmit the content of the http request. ] */
-                    if (write_data_line(http_data, BUFFER_u_char(send_data->content), content_len) != 0)
+                    size_t content_len = BUFFER_length(send_data->content);
+                    /* Codes_SRS_UHTTP_07_052: [uhttp_client_dowork shall call xio_send to transmits the header information... ] */
+                    if (send_http_data(http_data, send_data->request_type, STRING_c_str(send_data->relative_path), send_data->header_line) != 0)
                     {
                         LogError("Failure writing content buffer");
                         if (http_data->on_error)
@@ -1308,15 +1304,27 @@ void uhttp_client_dowork(HTTP_CLIENT_HANDLE handle)
                             http_data->on_error(http_data->error_user_ctx, HTTP_CALLBACK_REASON_SEND_FAILED);
                         }
                     }
-                }
+                    else if (content_len > 0)
+                    {
+                        /* Codes_SRS_UHTTP_07_053: [ Then uhttp_client_dowork shall use xio_send to transmit the content of the http request. ] */
+                        if (write_data_line(http_data, BUFFER_u_char(send_data->content), content_len) != 0)
+                        {
+                            LogError("Failure writing content buffer");
+                            if (http_data->on_error)
+                            {
+                                http_data->on_error(http_data->error_user_ctx, HTTP_CALLBACK_REASON_SEND_FAILED);
+                            }
+                        }
+                    }
 
-                /* Codes_SRS_UHTTP_07_046: [ http_client_dowork shall free resouces queued to send to the http endpoint. ] */
-                STRING_delete(send_data->relative_path);
-                BUFFER_delete(send_data->content);
-                STRING_delete(send_data->header_line);
-                free(send_data);
+                    /* Codes_SRS_UHTTP_07_046: [ http_client_dowork shall free resouces queued to send to the http endpoint. ] */
+                    STRING_delete(send_data->relative_path);
+                    BUFFER_delete(send_data->content);
+                    STRING_delete(send_data->header_line);
+                    free(send_data);
+                }
+                (void)singlylinkedlist_remove(http_data->data_list, pending_list_item);
             }
-            (void)singlylinkedlist_remove(http_data->data_list, pending_list_item);
         }
     }
 }
