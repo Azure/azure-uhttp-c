@@ -1048,7 +1048,7 @@ HTTP_CLIENT_RESULT uhttp_client_open(HTTP_CLIENT_HANDLE handle, const char* host
 #ifdef USE_OPENSSL
             // Default to tls 1.2
             int tls_version = 12;
-            xio_setoption(http_data->xio_handle, "tls_version", &tls_version);
+            xio_setoption(http_data->xio_handle, OPTION_TLS_VERSION, &tls_version);
 #endif
 
             if (xio_open(http_data->xio_handle, on_xio_open_complete, http_data, on_bytes_received, http_data, on_io_error, http_data) != 0)
