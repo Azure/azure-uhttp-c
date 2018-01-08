@@ -1414,3 +1414,18 @@ HTTP_CLIENT_RESULT uhttp_client_set_trusted_cert(HTTP_CLIENT_HANDLE handle, cons
     }
     return result;
 }
+
+const char* uhttp_client_get_trusted_cert(HTTP_CLIENT_HANDLE handle)
+{
+    const char* result;
+    if (handle == NULL)
+    {
+        result = NULL;
+        LogError("invalid parameter NULL handle");
+    }
+    else
+    {
+        result = handle->certificate;
+    }
+    return result;
+}

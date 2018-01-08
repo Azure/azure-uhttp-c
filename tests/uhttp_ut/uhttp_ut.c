@@ -2251,6 +2251,25 @@ TEST_FUNCTION(uhttp_client_set_trusted_cert_invalid_state_fail)
     uhttp_client_destroy(clientHandle);
 }
 
+TEST_FUNCTION(uhttp_client_set_trusted_cert_malloc_fail)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, TEST_CERTIFICATE)).SetReturn(__LINE__);
+
+    // act
+    HTTP_CLIENT_RESULT httpResult = uhttp_client_set_trusted_cert(clientHandle, TEST_CERTIFICATE);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
+
 TEST_FUNCTION(uhttp_client_set_trusted_cert_succeed)
 {
     // arrange
@@ -2264,6 +2283,56 @@ TEST_FUNCTION(uhttp_client_set_trusted_cert_succeed)
 
     // assert
     ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
+
+TEST_FUNCTION(uhttp_client_get_trusted_cert_handle_NULL_fail)
+{
+    // arrange
+
+    // act
+    const char* certificate = uhttp_client_get_trusted_cert(NULL);
+
+    // assert
+    ASSERT_IS_NULL(certificate);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+}
+
+TEST_FUNCTION(uhttp_client_get_trusted_cert_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    (void)uhttp_client_set_trusted_cert(clientHandle, TEST_CERTIFICATE);
+    umock_c_reset_all_calls();
+
+    // act
+    const char* certificate = uhttp_client_get_trusted_cert(clientHandle);
+
+    // assert
+    ASSERT_IS_NOT_NULL(certificate);
+    ASSERT_ARE_EQUAL(char_ptr, TEST_CERTIFICATE, certificate);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
+
+TEST_FUNCTION(uhttp_client_get_trusted_cert_not_set_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    umock_c_reset_all_calls();
+
+    // act
+    const char* certificate = uhttp_client_get_trusted_cert(clientHandle);
+
+    // assert
+    ASSERT_IS_NULL(certificate);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // Cleanup
