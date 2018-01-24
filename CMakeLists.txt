@@ -120,25 +120,12 @@ if(${use_installed_dependencies})
 
     write_basic_package_version_file(
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
-        VERSION ${UTPM_VERSION}
+        VERSION ${UHTTP_VERSION}
         COMPATIBILITY SameMajorVersion
-    )
-
-    configure_file("configs/${PROJECT_NAME}Config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
-        COPYONLY
-    )
-
-    install(EXPORT uhttpTargets
-        FILE
-            "${PROJECT_NAME}Targets.cmake"
-        DESTINATION
-            ${package_location}
     )
 
     install(
         FILES
-            "configs/${PROJECT_NAME}Config.cmake"
             "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
         DESTINATION
             ${package_location}
