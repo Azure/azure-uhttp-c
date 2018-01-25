@@ -84,6 +84,8 @@ include("configs/azure_uhttpFunctions.cmake")
 add_library(uhttp ${uhttp_c_files} ${uhttp_h_files})
 target_link_libraries(uhttp aziotsharedutil)
 
+set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
+
 if (${run_unittests})
     include("dependencies-test.cmake")
     add_subdirectory(tests)
