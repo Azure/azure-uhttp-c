@@ -12,6 +12,10 @@ option(run_unittests "set run_unittests to ON to run unittests (default is OFF)"
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 
+if(${no_logging})
+    add_definitions(-DNO_LOGGING)
+endif()
+
 # Include the common build rules for the C SDK
 include(deps/c-utility/configs/azure_iot_build_rules.cmake)
 

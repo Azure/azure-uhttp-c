@@ -26,9 +26,9 @@
 static const char* HTTP_REQUEST_LINE_FMT = "%s %s HTTP/1.1\r\n";
 static const char* HTTP_HOST = "Host";
 static const char* HTTP_CONTENT_LEN = "Content-Length";
-static const char* HTTP_CHUNKED_ENCODING_HDR = "Transfer-Encoding: chunked\r\n";
+//static const char* HTTP_CHUNKED_ENCODING_HDR = "Transfer-Encoding: chunked\r\n";
 static const char* HTTP_CRLF_VALUE = "\r\n";
-static const char* FORMAT_HEX_CHAR = "0x%02x ";
+//static const char* FORMAT_HEX_CHAR = "0x%02x ";
 
 typedef enum RESPONSE_MESSAGE_STATE_TAG
 {
