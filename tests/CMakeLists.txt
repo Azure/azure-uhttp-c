@@ -3,4 +3,6 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 
+usePermissiveRulesForSamplesAndTests()
+
 add_unittest_directory(uhttp_ut)

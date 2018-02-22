@@ -283,19 +283,6 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
     return result;
 }
 
-static void getLogTime(char* timeResult, size_t len)
-{
-    if (timeResult != NULL)
-    {
-        time_t localTime = time(NULL);
-        struct tm* tmInfo = localtime(&localTime);
-        if (strftime(timeResult, len, "%H:%M:%S", tmInfo) == 0)
-        {
-            timeResult[0] = '\0';
-        }
-    }
-}
-
 static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_line)
 {
     int result;
