@@ -924,6 +924,56 @@ TEST_FUNCTION(uhttp_client_open_succeed)
     uhttp_client_destroy(clientHandle);
 }
 
+/* Tests_SRS_UHTTP_07_008: [If uhttp_client_open succeeds then it shall return HTTP_CLIENT_OK] */
+TEST_FUNCTION(uhttp_client_open_certs_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    (void)uhttp_client_set_X509_cert(clientHandle, false, TEST_CERTIFICATE, TEST_PRIVATE_KEY);
+    (void)uhttp_client_set_trusted_cert(clientHandle, TEST_CERTIFICATE);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_setoption(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_setoption(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_setoption(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+#ifdef USE_OPENSSL
+    STRICT_EXPECTED_CALL(xio_setoption(IGNORED_PTR_ARG, "tls_version", IGNORED_PTR_ARG));
+#endif
+    EXPECTED_CALL(xio_open(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+    // act
+    HTTP_CLIENT_RESULT httpResult = uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult);
+
+    // Cleanup
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
+    uhttp_client_destroy(clientHandle);
+}
+
+/* Tests_SRS_UHTTP_07_008: [If uhttp_client_open succeeds then it shall return HTTP_CLIENT_OK] */
+TEST_FUNCTION(uhttp_client_open_invalid_status_fail)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+    umock_c_reset_all_calls();
+
+    // act
+    HTTP_CLIENT_RESULT httpResult = uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_INVALID_STATE, httpResult);
+
+    // Cleanup
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
+    uhttp_client_destroy(clientHandle);
+}
+
 /* Tests_SRS_UHTTP_07_049: [ If not NULL uhttp_client_open shall call the on_connect callback with the callback_ctx, once the underlying xio's open is complete. ] */
 /* Tests_SRS_UHTTP_07_042: [ If the underlying socket opens successfully the on_connect callback shall be call with HTTP_CALLBACK_REASON_OK... ] */
 /* Tests_SRS_UHTTP_07_008: [If uhttp_client_open succeeds then it shall return HTTP_CLIENT_OK] */
@@ -1335,6 +1385,33 @@ TEST_FUNCTION(uhttp_client_dowork_msg_succeed)
     HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
     (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
     (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    g_on_open_complete(g_on_open_complete_context, IO_OPEN_OK);
+    umock_c_reset_all_calls();
+
+    setup_uhttp_client_dowork_msg_mocks();
+
+    // act
+    uhttp_client_dowork(clientHandle);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
+    uhttp_client_destroy(clientHandle);
+}
+
+/* Tests_SRS_UHTTP_07_016: [http_client_dowork shall iterate through the queued Data using the xio interface to send the http request in the following ways...] */
+/* Tests_SRS_UHTTP_07_052: [uhttp_client_dowork shall call xio_send to transmits the header information... ] */
+/* Tests_SRS_UHTTP_07_053: [Then uhttp_client_dowork shall use xio_send to transmit the content of the http request if supplied. ] */
+TEST_FUNCTION(uhttp_client_dowork_msg_trace_on_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    (void)uhttp_client_set_trace(clientHandle, true, true);
+    (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+    (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    g_on_open_complete(g_on_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
     setup_uhttp_client_dowork_msg_mocks();
@@ -1407,6 +1484,7 @@ TEST_FUNCTION(uhttp_client_dowork_no_msg_succeed)
     HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
     (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
     (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    g_on_open_complete(g_on_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
     setup_uhttp_client_dowork_no_msg_mocks();
@@ -1428,6 +1506,7 @@ TEST_FUNCTION(uhttp_client_dowork_no_msg_fails)
     // arrange
     HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
     (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+    g_on_open_complete(g_on_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
     int negativeTestsInitResult = umock_c_negative_tests_init();
@@ -2172,6 +2251,25 @@ TEST_FUNCTION(uhttp_client_set_trusted_cert_invalid_state_fail)
     uhttp_client_destroy(clientHandle);
 }
 
+TEST_FUNCTION(uhttp_client_set_trusted_cert_malloc_fail)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, TEST_CERTIFICATE)).SetReturn(__LINE__);
+
+    // act
+    HTTP_CLIENT_RESULT httpResult = uhttp_client_set_trusted_cert(clientHandle, TEST_CERTIFICATE);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
+
 TEST_FUNCTION(uhttp_client_set_trusted_cert_succeed)
 {
     // arrange
@@ -2185,6 +2283,56 @@ TEST_FUNCTION(uhttp_client_set_trusted_cert_succeed)
 
     // assert
     ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
+
+TEST_FUNCTION(uhttp_client_get_trusted_cert_handle_NULL_fail)
+{
+    // arrange
+
+    // act
+    const char* certificate = uhttp_client_get_trusted_cert(NULL);
+
+    // assert
+    ASSERT_IS_NULL(certificate);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+}
+
+TEST_FUNCTION(uhttp_client_get_trusted_cert_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    (void)uhttp_client_set_trusted_cert(clientHandle, TEST_CERTIFICATE);
+    umock_c_reset_all_calls();
+
+    // act
+    const char* certificate = uhttp_client_get_trusted_cert(clientHandle);
+
+    // assert
+    ASSERT_IS_NOT_NULL(certificate);
+    ASSERT_ARE_EQUAL(char_ptr, TEST_CERTIFICATE, certificate);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
+
+TEST_FUNCTION(uhttp_client_get_trusted_cert_not_set_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    umock_c_reset_all_calls();
+
+    // act
+    const char* certificate = uhttp_client_get_trusted_cert(clientHandle);
+
+    // assert
+    ASSERT_IS_NULL(certificate);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // Cleanup
