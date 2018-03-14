@@ -86,6 +86,7 @@ include_directories(${SHARED_UTIL_INC_FOLDER})
 include("configs/azure_uhttpFunctions.cmake")
 
 add_library(uhttp ${uhttp_c_files} ${uhttp_h_files})
+setTargetBuildProperties(uhttp)
 target_link_libraries(uhttp aziotsharedutil)
 
 set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
