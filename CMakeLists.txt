@@ -17,7 +17,7 @@ if(${no_logging})
 endif()
 
 # Include the common build rules for the C SDK
-include(deps/c-utility/configs/azure_iot_build_rules.cmake)
+include("deps/c-utility/configs/azure_iot_build_rules.cmake")
 
 if(${use_openssl})
     add_definitions(-DUSE_OPENSSL)
@@ -51,8 +51,12 @@ set(run_unittests OFF)
 
 include("dependencies.cmake")
 
-set(SHARED_UTIL_REAL_TEST_FOLDER ${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/tests/real_test_files CACHE INTERNAL "this is what needs to be included when doing test sources" FORCE)
+if (${original_run_unittests})
+    set(SHARED_UTIL_REAL_TEST_FOLDER ${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/tests/real_test_files CACHE INTERNAL "this is what needs to be included when doing test sources" FORCE)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/testtools EXCLUDE_FROM_ALL)
+endif()
 
+set(use_cppunittest ON)
 set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
 
 set(run_e2e_tests ${original_run_e2e_tests})

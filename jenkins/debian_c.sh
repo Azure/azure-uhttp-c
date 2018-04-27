@@ -24,7 +24,7 @@ if [ $? != 0 ];then
 echo "Failure running build"
 fi
 
-ctest -C "debug" -V
+ctest -j $(nproc) -C "debug" -V
 if [ $? != 0 ];then
 echo "Failure running ctest"
 fi
