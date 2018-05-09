@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
 #ifdef __cplusplus
 #include <cstdlib>
 #include <cstddef>
@@ -132,11 +131,21 @@ static int TEST_PORT_NUM = 8080;
 static const char* TEST_HTTP_EXAMPLE[] = 
 {
     "HTTP/1.1 200 OK\r\nDate: Mon, 23 May 2005 22:38:34 GMT\r\nContent-Type: tex",
-    "t/html; charset=UTF-8\r\nContent-Encoding: UTF-8\r\nContent-Leng",
+    "t/html; charset=UTF-8\r\nContent-Encoding: UTF-8\r\ncontent-leng",
     "th: 118\r\nLast-Modified: Wed, 08 Jan 2003 23:11:55 GMT\r\nServer: Apache/1.3.3.7 (Unix)(Red-Hat/Linux)\r\n",
     "ETag: \"3f80f-1b6-3e1cb03b\"\r\nAccept-",
     "Ranges: bytes\r\nConnection: close\r\n\r\n<html><head><title>An Example Page</title>",
     "</head><body>Hello World, this is a very simple HTML document.</body></html>\r\n\r\n" 
+};
+
+
+static const char* TEST_HTTP_EXAMPLE_2[] =
+{
+    "HTTP/1.1 200 OK\r\nDate: Tue, 08 May 2018 22:41:08 GMT\r\nX-Content-Type-Options: nosniff\r\n",
+    "Expires: 0\r\nCache-Control: no-cache,no-store,must-revalidate\r\nX-Hudson-Theme: default\r\nContent-Type: text/html;charset=utf-8\r\n",
+    "X-Hudson: 1.395\r\nX-Jenkins: 2.89.4\r\nX-Jenkins-Session: 5eb4cc0a\r\nX-Hudson-CLI-Port: 50000\r\nX-Jenkins-CLI-Port: 50000\r\n",
+    "X-Jenkins-CLI2-Port: 50000\r\nX-Frame-Options: sameorigin\r\nContent-Length: 69\r\nServer: Jetty(9.4.z-SNAPSHOT)\r\n\r\n",
+    "<!DOCTYPE html><html><body><footer><div></div></footer></body></html>"
 };
 
 static const char* TEST_HTTP_NO_CONTENT_EXAMPLE[] =
@@ -1661,6 +1670,76 @@ TEST_FUNCTION(uhttp_client_onBytesReceived_succeed)
 
     // assert
     /*ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());*/
+
+    // Cleanup
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
+    uhttp_client_destroy(clientHandle);
+}
+
+TEST_FUNCTION(uhttp_client_onBytesReceived_succeed_2)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, (void*)TEST_HTTP_EXAMPLE_2);
+    (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+    (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    ASSERT_IS_NOT_NULL(g_onBytesRecv);
+    umock_c_reset_all_calls();
+
+    // act
+    STRICT_EXPECTED_CALL(BUFFER_new());
+    STRICT_EXPECTED_CALL(BUFFER_append_build(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_u_char(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_shrink(IGNORED_PTR_ARG, IGNORED_NUM_ARG, false));
+    STRICT_EXPECTED_CALL(BUFFER_u_char(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
+
+    SetupProcessHeader();
+    SetupProcessHeader();
+    SetupProcessHeader();
+    SetupProcessHeader();
+
+    STRICT_EXPECTED_CALL(BUFFER_shrink(IGNORED_PTR_ARG, IGNORED_NUM_ARG, false));
+    STRICT_EXPECTED_CALL(BUFFER_append_build(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_u_char(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
+
+    SetupProcessHeader();
+    SetupProcessHeader();
+    SetupProcessHeader();
+    SetupProcessHeader();
+    SetupProcessHeader();
+
+    STRICT_EXPECTED_CALL(BUFFER_shrink(IGNORED_PTR_ARG, IGNORED_NUM_ARG, false));
+    STRICT_EXPECTED_CALL(BUFFER_append_build(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_u_char(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
+
+    SetupProcessHeader();
+    SetupProcessHeader();
+    SetupProcessHeader();
+    SetupProcessHeader();
+
+    STRICT_EXPECTED_CALL(BUFFER_shrink(IGNORED_PTR_ARG, IGNORED_NUM_ARG, false));
+    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_append_build(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_delete(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_clone(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_u_char(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(on_msg_recv_callback(IGNORED_PTR_ARG, HTTP_CALLBACK_REASON_OK, IGNORED_PTR_ARG, IGNORED_NUM_ARG, 200, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(HTTPHeaders_Free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_delete(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_delete(IGNORED_PTR_ARG));
+
+    size_t count = sizeof(TEST_HTTP_EXAMPLE_2) / sizeof(TEST_HTTP_EXAMPLE_2[0]);
+    for (size_t index = 0; index < count; index++)
+    {
+        g_onBytesRecv(g_onBytesRecv_ctx, (const unsigned char*)TEST_HTTP_EXAMPLE_2[index], strlen(TEST_HTTP_EXAMPLE_2[index]));
+    }
+
+    // assert
 
     // Cleanup
     uhttp_client_close(clientHandle, on_closed_callback, NULL);

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <ctype.h>
+
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/gballoc.h"
 
@@ -25,7 +27,8 @@
 
 static const char* HTTP_REQUEST_LINE_FMT = "%s %s HTTP/1.1\r\n";
 static const char* HTTP_HOST = "Host";
-static const char* HTTP_CONTENT_LEN = "Content-Length";
+static const char* HTTP_CONTENT_LEN = "content-length";
+static const char* HTTP_TRANSFER_ENCODING = "transfer-encoding";
 //static const char* HTTP_CHUNKED_ENCODING_HDR = "Transfer-Encoding: chunked\r\n";
 static const char* HTTP_CRLF_VALUE = "\r\n";
 //static const char* FORMAT_HEX_CHAR = "0x%02x ";
@@ -194,6 +197,12 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                 memcpy(headerKey, targetPos, keyLen);
                 headerKey[keyLen] = '\0';
 
+                // Convert to lower case
+                for (size_t inner = 0; inner < keyLen; inner++)
+                {
+                    headerKey[inner] = (char)tolower(headerKey[inner]);
+                }
+
                 targetPos = buffer+index+1;
                 crlfEncounted = false;
             }
@@ -229,7 +238,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                             *isChunked = false;
                             *contentLen = atol(headerValue);
                         }
-                        else if (strcmp(headerKey, "Transfer-Encoding") == 0)
+                        else if (strcmp(headerKey, HTTP_TRANSFER_ENCODING) == 0)
                         {
                             *isChunked = true;
                             *contentLen = 0;
