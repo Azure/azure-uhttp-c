@@ -132,6 +132,9 @@ static size_t TEST_HTTP_CONTENT_CHUNK_LEN = 15;
 static size_t HEADER_COUNT = 9;
 static int TEST_PORT_NUM = 8080;
 
+static const char* TEST_SET_OPTION_NAME = "TEST_SET_OPTION_NAME";
+static const char* TEST_SET_OPTION_VALUE = "TEST_SET_OPTION_VALUE";
+
 static const char* TEST_HTTP_EXAMPLE[] = 
 {
     "HTTP/1.1 200 OK\r\nDate: Mon, 23 May 2005 22:38:34 GMT\r\nContent-Type: tex",
@@ -2421,5 +2424,55 @@ TEST_FUNCTION(uhttp_client_get_trusted_cert_not_set_succeed)
     // Cleanup
     uhttp_client_destroy(clientHandle);
 }
+
+TEST_FUNCTION(uhttp_client_set_option_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(xio_setoption(IGNORED_PTR_ARG, TEST_SET_OPTION_NAME, TEST_SET_OPTION_VALUE));
+
+    // act
+    HTTP_CLIENT_RESULT httpResult = uhttp_client_set_option(clientHandle, TEST_SET_OPTION_NAME, TEST_SET_OPTION_VALUE);
+
+    // assert
+    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
+
+TEST_FUNCTION(uhttp_client_set_option_call_fail)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(xio_setoption(IGNORED_PTR_ARG, TEST_SET_OPTION_NAME, TEST_SET_OPTION_VALUE)).SetReturn(1);
+
+    // act
+    HTTP_CLIENT_RESULT httpResult = uhttp_client_set_option(clientHandle, TEST_SET_OPTION_NAME, TEST_SET_OPTION_VALUE);
+
+    // assert
+    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_ERROR, httpResult);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
+
+
+TEST_FUNCTION(uhttp_client_set_option_null_handle_fail)
+{
+    // act
+    HTTP_CLIENT_RESULT httpResult = uhttp_client_set_option(NULL, TEST_SET_OPTION_NAME, TEST_SET_OPTION_VALUE);
+
+    // assert
+    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_INVALID_ARG, httpResult);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
 
 END_TEST_SUITE(uhttp_ut)

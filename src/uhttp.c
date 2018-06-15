@@ -1425,3 +1425,30 @@ const char* uhttp_client_get_trusted_cert(HTTP_CLIENT_HANDLE handle)
     }
     return result;
 }
+
+HTTP_CLIENT_RESULT uhttp_client_set_option(HTTP_CLIENT_HANDLE handle, const char* optionName, const void* value)
+{
+    HTTP_CLIENT_RESULT result;
+    if (handle == NULL)
+    {
+        /* Codes_SRS_UHTTP_07_038: [If handle is NULL then http_client_set_trace shall return HTTP_CLIENT_INVALID_ARG] */
+        result = HTTP_CLIENT_INVALID_ARG;
+        LogError("invalid parameter handle: %p", handle);
+    }
+    else
+    {
+        int setoption_result = xio_setoption(handle->xio_handle, optionName, value);
+        if (setoption_result != 0)
+        {
+            LogError("xio_setoption fails, returns %d", setoption_result);
+            result = HTTP_CLIENT_ERROR;
+        }
+        else
+        {
+            result = HTTP_CLIENT_OK;
+        }
+
+    }
+
+    return result;
+}
