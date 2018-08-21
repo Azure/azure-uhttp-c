@@ -186,6 +186,12 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
         {
             colonEncountered = true;
             size_t keyLen = (&buffer[index])-targetPos;
+
+            if (headerKey != NULL)
+            {
+                free(headerKey);
+                headerKey = NULL;
+            }
             headerKey = (char*)malloc(keyLen+1);
             if (headerKey == NULL)
             {
