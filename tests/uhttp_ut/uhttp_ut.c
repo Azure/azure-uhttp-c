@@ -798,7 +798,7 @@ TEST_FUNCTION(uhttp_client_create_fails)
         umock_c_negative_tests_fail_call(index);
 
         char tmp_msg[64];
-        sprintf(tmp_msg, "uhttp_client_create failure in test %zu/%zu", index, count);
+        sprintf(tmp_msg, "uhttp_client_create failure in test %lu/%lu", index, count);
 
         HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
 
@@ -1063,7 +1063,7 @@ TEST_FUNCTION(uhttp_client_open_fail)
         umock_c_negative_tests_fail_call(index);
 
         char tmp_msg[64];
-        sprintf(tmp_msg, "uhttp_client_open failure in test %zu/%zu", index, count);
+        sprintf(tmp_msg, "uhttp_client_open failure in test %lu/%lu", index, count);
         
         HTTP_CLIENT_RESULT httpResult = uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
 
@@ -1245,7 +1245,7 @@ TEST_FUNCTION(uhttp_client_execute_request_no_content_fails)
         umock_c_negative_tests_fail_call(index);
 
         char tmp_msg[64];
-        sprintf(tmp_msg, "uhttp_client_execute_request failure in test %zu/%zu", index, count);
+        sprintf(tmp_msg, "uhttp_client_execute_request failure in test %lu/%lu", index, count);
 
         HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
 
@@ -1364,7 +1364,7 @@ TEST_FUNCTION(uhttp_client_execute_request_with_content_fails)
         umock_c_negative_tests_fail_call(index);
 
         char tmp_msg[64];
-        sprintf(tmp_msg, "uhttp_client_execute_request failure in test %zu/%zu", index, count);
+        sprintf(tmp_msg, "uhttp_client_execute_request failure in test %lu/%lu", index, count);
 
         HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
 
@@ -1480,7 +1480,7 @@ TEST_FUNCTION(uhttp_client_dowork_msg_fails)
         umock_c_negative_tests_fail_call(index);
 
         char tmp_msg[64];
-        sprintf(tmp_msg, "uhttp_client_dowork failure in test %zu/%zu", index, count);
+        sprintf(tmp_msg, "uhttp_client_dowork failure in test %lu/%lu", index, count);
 
         uhttp_client_dowork(clientHandle);
 
@@ -1549,7 +1549,7 @@ TEST_FUNCTION(uhttp_client_dowork_no_msg_fails)
         umock_c_negative_tests_fail_call(index);
 
         char tmp_msg[64];
-        sprintf(tmp_msg, "uhttp_client_dowork failure in test %zu/%zu", index, count);
+        sprintf(tmp_msg, "uhttp_client_dowork failure in test %lu/%lu", index, count);
 
         uhttp_client_dowork(clientHandle);
     }
@@ -2109,7 +2109,7 @@ TEST_FUNCTION(uhttp_client_onBytesReceived_small_ex_fail)
         umock_c_negative_tests_fail_call(index);
 
         char tmp_msg[64];
-        sprintf(tmp_msg, "g_onBytesRecv failure in test %zu/%zu", index, count);
+        sprintf(tmp_msg, "g_onBytesRecv failure in test %lu/%lu", index, count);
 
         size_t http_len = strlen(TEST_SMALL_HTTP_EXAMPLE);
         g_onBytesRecv(g_onBytesRecv_ctx, (const unsigned char*)TEST_SMALL_HTTP_EXAMPLE, http_len);
