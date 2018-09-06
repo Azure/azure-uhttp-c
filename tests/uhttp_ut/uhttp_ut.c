@@ -135,14 +135,14 @@ static int TEST_PORT_NUM = 8080;
 static const char* TEST_SET_OPTION_NAME = "TEST_SET_OPTION_NAME";
 static const char* TEST_SET_OPTION_VALUE = "TEST_SET_OPTION_VALUE";
 
-static const char* TEST_HTTP_EXAMPLE[] = 
+static const char* TEST_HTTP_EXAMPLE[] =
 {
     "HTTP/1.1 200 OK\r\nDate: Mon, 23 May 2005 22:38:34 GMT\r\nContent-Type: tex",
     "t/html; charset=UTF-8\r\nContent-Encoding: UTF-8\r\ncontent-leng",
     "th: 118\r\nLast-Modified: Wed, 08 Jan 2003 23:11:55 GMT\r\nServer: Apache/1.3.3.7 (Unix)(Red-Hat/Linux)\r\n",
     "ETag: \"3f80f-1b6-3e1cb03b\"\r\nAccept-",
     "Ranges: bytes\r\nConnection: close\r\n\r\n<html><head><title>An Example Page</title>",
-    "</head><body>Hello World, this is a very simple HTML document.</body></html>\r\n\r\n" 
+    "</head><body>Hello World, this is a very simple HTML document.</body></html>\r\n\r\n"
 };
 
 
@@ -1064,7 +1064,7 @@ TEST_FUNCTION(uhttp_client_open_fail)
 
         char tmp_msg[64];
         sprintf(tmp_msg, "uhttp_client_open failure in test %zu/%zu", index, count);
-        
+
         HTTP_CLIENT_RESULT httpResult = uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
 
         //assert
@@ -1468,7 +1468,7 @@ TEST_FUNCTION(uhttp_client_dowork_msg_fails)
             continue;
         }
 
-        // We fail singlylinkedlist_item_get_value function which will cause a 
+        // We fail singlylinkedlist_item_get_value function which will cause a
         // memory leak if this is called
         if (index != 2)
         {
@@ -1960,7 +1960,7 @@ TEST_FUNCTION(uhttp_client_onBytesReceived_chunk_response_IRL_succeed)
     STRICT_EXPECTED_CALL(BUFFER_shrink(IGNORED_PTR_ARG, IGNORED_NUM_ARG, false));
     STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(BUFFER_u_char(IGNORED_PTR_ARG));
-    
+
     STRICT_EXPECTED_CALL(BUFFER_append_build(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(BUFFER_u_char(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));

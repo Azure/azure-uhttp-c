@@ -1125,7 +1125,7 @@ void uhttp_client_close(HTTP_CLIENT_HANDLE handle, ON_HTTP_CLOSED_CALLBACK on_cl
             HTTPHeaders_Free(http_data->recv_msg.resp_header);
             http_data->recv_msg.resp_header = NULL;
         }
-        if (http_data->recv_msg.msg_body != NULL) 
+        if (http_data->recv_msg.msg_body != NULL)
         {
             BUFFER_delete(http_data->recv_msg.msg_body);
             http_data->recv_msg.msg_body = NULL;
