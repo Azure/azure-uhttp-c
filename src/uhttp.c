@@ -973,8 +973,6 @@ HTTP_CLIENT_HANDLE uhttp_client_create(const IO_INTERFACE_DESCRIPTION* io_interf
                 result->recv_msg.recv_state = state_initial;
                 result->chunk_request = false;
                 result->trace_on = false;
-                bool ignore_check = true;
-                (void)xio_setoption(result->xio_handle, "ignore_server_name_check", &ignore_check);
             }
         }
     }
