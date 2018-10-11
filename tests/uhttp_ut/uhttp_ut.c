@@ -1067,7 +1067,7 @@ TEST_FUNCTION(uhttp_client_open_fail)
         HTTP_CLIENT_RESULT httpResult = uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
 
         //assert
-        ASSERT_ARE_NOT_EQUAL_WITH_MSG(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, tmp_msg);
+        ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, tmp_msg);
     }
 
     //cleanup
@@ -1249,7 +1249,7 @@ TEST_FUNCTION(uhttp_client_execute_request_no_content_fails)
         HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
 
         // assert
-        ASSERT_ARE_NOT_EQUAL_WITH_MSG(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, tmp_msg);
+        ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, tmp_msg);
     }
 
     // Cleanup
@@ -1368,7 +1368,7 @@ TEST_FUNCTION(uhttp_client_execute_request_with_content_fails)
         HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
 
         // assert
-        ASSERT_ARE_NOT_EQUAL_WITH_MSG(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, tmp_msg);
+        ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, tmp_msg);
     }
 
     // Cleanup
