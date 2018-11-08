@@ -43,8 +43,6 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 endif()
 
-compileAsC99()
-
 set(UHTTP_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
 
 #do not add or build any tests of the dependencies
@@ -149,3 +147,5 @@ else()
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
+
+compileTargetAsC99(uhttp)

@@ -3,7 +3,6 @@
 
 cmake_minimum_required(VERSION 2.8.11)
 
-compileAsC11()
 set(theseTestsName uhttp_ut)
 
 if(${use_openssl})
@@ -27,3 +26,5 @@ set(${theseTestsName}_h_files
 )
 
 build_c_test_artifacts(${theseTestsName} ON "tests/uhttp_tests")
+
+compile_c_test_artifacts_as(${theseTestsName} C99)

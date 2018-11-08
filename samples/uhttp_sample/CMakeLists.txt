@@ -1,8 +1,6 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-compileAsC99()
-
 set(uhttp_sample_c_files
     uhttp_sample.c
 )
@@ -21,6 +19,8 @@ include_directories(${DEV_AUTH_MODULES_CLIENT_INC_FOLDER})
 include_directories(${SHARED_UTIL_INC_FOLDER})
 
 add_executable(uhttp_sample ${uhttp_sample_c_files} ${uhttp_sample_h_files})
+
+compileTargetAsC99(uhttp_sample)
 
 target_link_libraries(uhttp_sample uhttp)
 linkSharedUtil(uhttp_sample)
