@@ -22,7 +22,7 @@ if(${no_logging})
 endif()
 
 # Include the common build rules for the C SDK
-include("deps/c-utility/configs/azure_iot_build_rules.cmake")
+include("${SHARED_UTIL_FOLDER}/configs/azure_iot_build_rules.cmake")
 
 if(${use_openssl})
     add_definitions(-DUSE_OPENSSL)
