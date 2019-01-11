@@ -1,21 +1,26 @@
 # uhttp Requirements
 
-================
-
 ## Overview
 
 The uhttp module provides a platform independent http implementation
 
 ## References
 
-RFC7230 - Hypertext Transfer Protocol
+[RFC 2616 - Hypertext Transfer Protocol -- HTTP/1.1](https://tools.ietf.org/html/rfc2616)
 
-## RFC 7230 features not yet supported
+[RFC 7230 - Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing](https://tools.ietf.org/html/rfc7230)
 
-4.1   Sending Chunking message
-8.1.0 Persistent Connections
-8.2.3 100 Continue Response
-14.33 Proxy Authentication
+
+### Features not yet supported
+
+[4.1 Sending Chunking message](https://tools.ietf.org/html/rfc7230#section-4.1)
+
+[8.1 Persistent Connections](https://tools.ietf.org/html/rfc2616#section-8.1)
+
+[8.2.3 100 Continue Response](https://tools.ietf.org/html/rfc2616#section-8.2.3)
+
+[14.33 Proxy Authentication](https://tools.ietf.org/html/rfc2616#section-14.33)
+
 execute_request Timeout
 
 ## Exposed API
@@ -84,11 +89,11 @@ HTTP_CLIENT_HANDLE uhttp_client_create(const IO_INTERFACE_DESCRIPTION* io_interf
 
 http_client_create initializes the http client object.
 
-**SRS_UHTTP_07_002: [**If io_interface_desc is NULL, `uhttp_client_create` shall return NULL.**]**
+**SRS_UHTTP_07_002: [** If io_interface_desc is NULL, `uhttp_client_create` shall return NULL. **]**
 
-**SRS_UHTTP_07_001: [**`uhttp_client_create` shall return and initialize the http client handle.**]**
+**SRS_UHTTP_07_001: [** `uhttp_client_create` shall return and initialize the http client handle.**]**
 
-**SRS_UHTTP_07_003: [**If `uhttp_client_create` encounters any error then it shall return NULL**]**
+**SRS_UHTTP_07_003: [** If `uhttp_client_create` encounters any error then it shall return NULL **]**
 
 ### uhttp_client_destroy
 
@@ -110,13 +115,13 @@ HTTP_CLIENT_RESULT uhttp_client_open(HTTP_CLIENT_HANDLE handle, const char* host
 
 uhttp_client_open opens the xio_handle calling the on_open callback if supplied.
 
-**SRS_UHTTP_07_006: [**If handle or host is NULL then `uhttp_client_open` shall return HTTP_CLIENT_INVALID_ARG**]**
+**SRS_UHTTP_07_006: [** If handle or host is NULL then `uhttp_client_open` shall return HTTP_CLIENT_INVALID_ARG **]**
 
-**SRS_UHTTP_07_007: [**`uhttp_client_open` shall call xio_open on the xio_handle.**]**
+**SRS_UHTTP_07_007: [** `uhttp_client_open` shall call `xio_open` on the xio_handle.**]**
 
-**SRS_UHTTP_07_044: [** if a failure is encountered on xio_open `uhttp_client_open` shall return `HTTP_CLIENT_OPEN_REQUEST_FAILED`. **]**
+**SRS_UHTTP_07_044: [** if a failure is encountered on `xio_open`, `uhttp_client_open` shall return `HTTP_CLIENT_OPEN_REQUEST_FAILED`. **]**
 
-**SRS_UHTTP_07_008: [**If `uhttp_client_open` succeeds then it shall return HTTP_CLIENT_OK**]**
+**SRS_UHTTP_07_008: [** If `uhttp_client_open` succeeds then it shall return HTTP_CLIENT_OK **]**
 
 ### uhttp_client_close
 
@@ -126,9 +131,9 @@ void uhttp_client_close(HTTP_CLIENT_HANDLE handle, ON_HTTP_CLOSED_CALLBACK on_cl
 
 uhttp_client_close closes the xioHandle connection.
 
-**SRS_UHTTP_07_009: [**If handle is NULL then `uhttp_client_close` shall do nothing**]**
+**SRS_UHTTP_07_009: [** If handle is NULL then `uhttp_client_close` shall do nothing **]**
 
-**SRS_UHTTP_07_010: [**If the xio_handle is NOT NULL `uhttp_client_close` shall call xio_close**]**
+**SRS_UHTTP_07_010: [** If the xio_handle is NOT NULL `uhttp_client_close` shall call `xio_close` **]**
 
 **SRS_UHTTP_07_049: [** If the state has been previously set to `state_closed`, `uhttp_client_close` shall do nothing. **]**
 
@@ -141,21 +146,21 @@ HTTP_CLIENT_RESULT uhttp_client_execute_request(HTTP_CLIENT_HANDLE handle, HTTP_
 
 uhttp_client_execute_request allocates data to be sent to the http endpoint.
 
-**SRS_UHTTP_07_012: [**If `handle`, or `on_http_reply_recv` is NULL then `uhttp_client_execute_request` shall return HTTP_CLIENT_INVALID_ARG.**]**
+**SRS_UHTTP_07_012: [** If `handle`, or `on_http_reply_recv` is NULL then `uhttp_client_execute_request` shall return HTTP_CLIENT_INVALID_ARG. **]**
 
-**SRS_UHTTP_07_013: [**if content is not NULL and `contentLength` is 0 or content is NULL and contentLength is not 0 then `uhttp_client_execute_request` shall return HTTP_CLIENT_INVALID_ARG.**]**
+**SRS_UHTTP_07_013: [** if content is not NULL and `contentLength` is 0 or content is NULL and contentLength is not 0 then `uhttp_client_execute_request` shall return HTTP_CLIENT_INVALID_ARG. **]**
 
-**SRS_UHTTP_07_041: [**HTTP_CLIENT_REQUEST_TYPE shall support all request types specified under section 9.1.2 in the spec.**]**
+**SRS_UHTTP_07_041: [** HTTP_CLIENT_REQUEST_TYPE shall support all request types specified under RFC 2616 section 9.1.2 in the spec. **]**
 
-**SRS_UHTTP_07_016: [**`uhttp_client_execute_request` shall queue the http headers data and content to be sent to the http endpoint.**]**
+**SRS_UHTTP_07_016: [** `uhttp_client_execute_request` shall queue the http headers data and content to be sent to the http endpoint. **]**
 
-**SRS_UHTTP_07_015: [**`uhttp_client_execute_request` shall add the Content-Length to the request if the contentLength is > 0.**]**
+**SRS_UHTTP_07_015: [** `uhttp_client_execute_request` shall add the Content-Length to the request if the contentLength is `>` 0. **]**
 
-**SRS_UHTTP_07_011: [**`uhttp_client_execute_request` shall add the HOST http header item to the request if not supplied (RFC 7230 - 5.4).**]**
+**SRS_UHTTP_07_011: [** `uhttp_client_execute_request` shall add the HOST http header item to the request if not supplied (RFC 7230 - 5.4). **]**
 
-**SRS_UHTTP_07_018: [**upon success `uhttp_client_execute_request` shall return HTTP_CLIENT_OK.**]**
+**SRS_UHTTP_07_018: [** upon success `uhttp_client_execute_request` shall return HTTP_CLIENT_OK. **]**
 
-**SRS_UHTTP_07_017: [**If any failure is encountered `uhttp_client_execute_request` shall return HTTP_CLIENT_ERROR.**]**
+**SRS_UHTTP_07_017: [** If any failure is encountered `uhttp_client_execute_request` shall return HTTP_CLIENT_ERROR. **]**
 
 ### uhttp_client_dowork
 
@@ -165,13 +170,13 @@ void uhttp_client_dowork(HTTP_CLIENT_HANDLE handle);
 
 uhttp_client_dowork executes the http work that includes sends and receives.
 
-**SRS_UHTTP_07_036: [**If handle is NULL then `uhttp_client_dowork` shall do nothing.**]**
+**SRS_UHTTP_07_036: [** If handle is NULL then `uhttp_client_dowork` shall do nothing. **]**
 
-**SRS_UHTTP_07_037: [**`uhttp_client_dowork` shall call the underlying xio_dowork function. **]**
+**SRS_UHTTP_07_037: [** `uhttp_client_dowork` shall call the underlying xio_dowork function. **]**
 
-**SRS_UHTTP_07_016: [**`uhttp_client_dowork` shall iterate through the queued Data using the xio interface to send the http request in the following ways...**]**
+**SRS_UHTTP_07_016: [** `uhttp_client_dowork` shall iterate through the queued Data using the xio interface to send the http request in the following ways... **]**
 
-**SRS_UHTTP_07_052: [**`uhttp_client_dowork` shall call xio_send to transmits the header information... **]**
+**SRS_UHTTP_07_052: [** `uhttp_client_dowork` shall call xio_send to transmits the header information... **]**
 
 **SRS_UHTTP_07_053: [** Then `uhttp_client_dowork` shall use xio_send to transmit the content of the http request if supplied. **]**
 
@@ -185,11 +190,11 @@ HTTP_CLIENT_RESULT uhttp_client_set_trace(HTTP_CLIENT_HANDLE handle, bool trace_
 
 http_client_set_trace turns on or off log tracing.
 
-**SRS_UHTTP_07_038: [**If handle is NULL then `http_client_set_trace` shall return HTTP_CLIENT_INVALID_ARG**]**
+**SRS_UHTTP_07_038: [** If handle is NULL then `http_client_set_trace` shall return HTTP_CLIENT_INVALID_ARG **]**
 
-**SRS_UHTTP_07_039: [**`http_client_set_trace` shall set the HTTP tracing to the trace_on variable.**]**
+**SRS_UHTTP_07_039: [** `http_client_set_trace` shall set the HTTP tracing to the trace_on variable. **]**
 
-**SRS_UHTTP_07_040: [**if `http_client_set_trace` finishes successfully then it shall return HTTP_CLIENT_OK.**]**
+**SRS_UHTTP_07_040: [** if `http_client_set_trace` finishes successfully then it shall return HTTP_CLIENT_OK. **]**
 
 ### on_bytes_received
 
