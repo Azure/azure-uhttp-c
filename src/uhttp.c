@@ -1057,11 +1057,6 @@ HTTP_CLIENT_RESULT uhttp_client_open(HTTP_CLIENT_HANDLE handle, const char* host
 
             if (result == HTTP_CLIENT_OK)
             {
-#ifdef USE_OPENSSL
-                // Default to tls 1.2
-                int tls_version = 12;
-                xio_setoption(http_data->xio_handle, OPTION_TLS_VERSION, &tls_version);
-#endif
                 if (xio_open(http_data->xio_handle, on_xio_open_complete, http_data, on_bytes_received, http_data, on_io_error, http_data) != 0)
                 {
                     /* Codes_SRS_UHTTP_07_044: [ if a failure is encountered on xio_open uhttp_client_open shall return HTTP_CLIENT_OPEN_REQUEST_FAILED. ] */
