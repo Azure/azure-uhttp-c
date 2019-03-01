@@ -10,6 +10,7 @@
 #include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/socketio.h"
+#include "azure_c_shared_utility/tlsio.h"
 #include "azure_uhttp_c/uhttp.h"
 
 #define HTTP_PORT_NUM       80
@@ -64,19 +65,42 @@ static void on_closed_callback(void* callback_ctx)
     printf("Connection closed callback\r\n");
 }
 
-static void test_http_get(void)
+static HTTP_CLIENT_HANDLE create_uhttp_client_handle(HTTP_SAMPLE_INFO* sample_info, const char* host_name, int port_num)
 {
     SOCKETIO_CONFIG config;
+    TLSIO_CONFIG tls_io_config;
+    const void* xio_param;
+    const IO_INTERFACE_DESCRIPTION* interface_desc;
+    if (port_num == HTTPS_PORT_NUM)
+    {
+        tls_io_config.hostname = host_name;
+        tls_io_config.port = port_num;
+        tls_io_config.underlying_io_interface = NULL;
+        tls_io_config.underlying_io_parameters = NULL;
+        xio_param = &tls_io_config;
+        // Get the TLS definition
+        interface_desc = platform_get_default_tlsio();
+    }
+    else
+    {
+        config.accepted_socket = NULL;
+        config.hostname = host_name;
+        config.port = port_num;
+        xio_param = &config;
+        // Get the socket definition
+        interface_desc = socketio_get_interface_description();
+    }
+    return uhttp_client_create(interface_desc, xio_param, on_error, sample_info);
+}
+
+static void test_http_get(void)
+{
     const char* host_name = "httpbin.org";
     int port_num = HTTP_PORT_NUM;
     HTTP_SAMPLE_INFO sample_info;
     sample_info.stop_running = 0;
 
-    config.accepted_socket = NULL;
-    config.hostname = host_name;
-    config.port = port_num;
-
-    HTTP_CLIENT_HANDLE http_handle = uhttp_client_create(socketio_get_interface_description(), &config, on_error, &sample_info);
+    HTTP_CLIENT_HANDLE http_handle = create_uhttp_client_handle(&sample_info, host_name, port_num);
     if (http_handle == NULL)
     {
         (void)printf("FAILED HERE\r\n");
@@ -109,17 +133,12 @@ static void test_http_get(void)
 
 void test_http_post(void)
 {
-    SOCKETIO_CONFIG config;
     const char* host_name = "httpbin.org";
     int port_num = HTTP_PORT_NUM;
     HTTP_SAMPLE_INFO sample_info;
     sample_info.stop_running = 0;
 
-    config.accepted_socket = NULL;
-    config.hostname = host_name;
-    config.port = port_num;
-
-    HTTP_CLIENT_HANDLE http_handle = uhttp_client_create(socketio_get_interface_description(), &config, on_error, &sample_info);
+    HTTP_CLIENT_HANDLE http_handle = create_uhttp_client_handle(&sample_info, host_name, port_num);
     if (http_handle == NULL)
     {
         (void)printf("FAILED MORE HERE\r\n");
