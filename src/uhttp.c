@@ -112,7 +112,7 @@ static int initialize_received_data(HTTP_CLIENT_HANDLE_DATA* http_data)
         {
             /* Codes_SRS_UHTTP_07_048: [ If any error is encountered on_bytes_received shall set the state to error. ] */
             LogError("Failure creating Http header.");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
     }
     if (result == 0 && http_data->recv_msg.accrual_buff == NULL)
@@ -122,7 +122,7 @@ static int initialize_received_data(HTTP_CLIENT_HANDLE_DATA* http_data)
         {
             /* Codes_SRS_UHTTP_07_048: [ If any error is encountered on_bytes_received shall set the state to error. ] */
             LogError("Failure creating accrual buffer.");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
     }
     http_data->recv_msg.chunked_reply = false;
@@ -131,7 +131,7 @@ static int initialize_received_data(HTTP_CLIENT_HANDLE_DATA* http_data)
 
 static int process_status_code_line(const unsigned char* buffer, size_t len, size_t* position, int* statusLen)
 {
-    int result = __FAILURE__;
+    int result = MU_FAILURE;
     size_t index;
     int spaceFound = 0;
     const char* initSpace = NULL;
@@ -172,7 +172,7 @@ static int process_status_code_line(const unsigned char* buffer, size_t len, siz
 
 static int process_header_line(const unsigned char* buffer, size_t len, size_t* position, HTTP_HEADERS_HANDLE resp_header, size_t* contentLen, bool* isChunked)
 {
-    int result = __FAILURE__;
+    int result = MU_FAILURE;
     size_t index;
     const unsigned char* targetPos = buffer;
     bool crlfEncounted = false;
@@ -195,7 +195,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
             headerKey = (char*)malloc(keyLen+1);
             if (headerKey == NULL)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
                 continueProcessing = false;
             }
             else
@@ -224,7 +224,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                 char* headerValue = (char*)malloc(valueLen+1);
                 if (headerValue == NULL)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                     continueProcessing = false;
                 }
                 else
@@ -234,7 +234,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
 
                     if (HTTPHeaders_AddHeaderNameValuePair(resp_header, headerKey, headerValue) != HTTP_HEADERS_OK)
                     {
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                         continueProcessing = false;
                     }
                     else
@@ -304,7 +304,7 @@ static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_
     if (xio_send(http_data->xio_handle, text_line, strlen(text_line), send_complete_callback, NULL) != 0)
     {
         LogError("Failure calling xio_send.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -323,7 +323,7 @@ static int write_data_line(HTTP_CLIENT_HANDLE_DATA* http_data, const unsigned ch
     if (xio_send(http_data->xio_handle, data_line, length, send_complete_callback, NULL) != 0)
     {
         LogError("Failure calling xio_send.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -741,7 +741,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
     if ( (http_header != NULL) && HTTPHeaders_GetHeaderCount(http_header, &headerCnt) != HTTP_HEADERS_OK)
     {
         LogError("Failed in HTTPHeaders_GetHeaderCount");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -751,7 +751,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
             char* header;
             if (HTTPHeaders_GetHeader(http_header, index, &header) != HTTP_HEADERS_OK)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
                 LogError("Failed in HTTPHeaders_GetHeader");
             }
             else
@@ -760,7 +760,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
                 char* sendData = malloc(dataLen+1);
                 if (sendData == NULL)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                     LogError("Failed in allocating header data");
                 }
                 else
@@ -772,14 +772,14 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
 
                     if (snprintf(sendData, dataLen+1, "%s\r\n", header) <= 0)
                     {
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                         LogError("Failed in constructing header data");
                     }
                     else
                     {
                         if (STRING_concat(buffData, sendData) != 0)
                         {
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                             LogError("Failed in building header data");
                         }
                     }
@@ -795,19 +795,19 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
             if (host_header == NULL)
             {
                 LogError("Failed allocating host header");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 if (snprintf(host_header, host_len+1, "%s: %s:%d\r\n", HTTP_HOST, hostname, port_num) <= 0)
                 {
                     LogError("Failed constructing host header");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else if (STRING_concat(buffData, host_header) != 0)
                 {
                     LogError("Failed adding the host header to the http item");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 free(host_header);
             }
@@ -821,21 +821,21 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
             if (content == NULL)
             {
                 LogError("Failed allocating chunk header");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 /* Codes_SRS_UHTTP_07_015: [on_bytes_received shall add the Content-Length http header item to the request.] */
                 if (sprintf(content, "%s: %u%s", HTTP_CONTENT_LEN, (unsigned int)content_len, HTTP_CRLF_VALUE) <= 0)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                     LogError("Failed allocating content len header data");
                 }
                 else
                 {
                     if (STRING_concat(buffData, content) != 0)
                     {
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                         LogError("Failed building content len header data");
                     }
                 }
@@ -844,7 +844,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
 
             if (STRING_concat(buffData, "\r\n") != 0)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
                 LogError("Failed sending header finalization data");
             }
         }
@@ -913,14 +913,14 @@ static int send_http_data(HTTP_CLIENT_HANDLE_DATA* http_data, HTTP_CLIENT_REQUES
     if (transmit_data == NULL)
     {
         LogError("Failure constructing http data");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
         /* Tests_SRS_UHTTP_07_016: [http_client_execute_request shall transmit the http headers data through a call to xio_send;]*/
         if (write_text_line(http_data, STRING_c_str(transmit_data) ) != 0)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
             LogError("Failure writing request buffer");
         }
         else
