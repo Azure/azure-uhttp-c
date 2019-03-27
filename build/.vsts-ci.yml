@@ -48,20 +48,6 @@ phases:
   - script: cd .. && rd /Q /S $(Agent.BuildDirectory)\s
     displayName: 'cleanup'
     condition: always()
-- phase: raspberrypi
-  variables:
-    _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/raspberrypi-c"
-  queue: Hosted Ubuntu 1604
-  displayName: raspberrypi
-  steps:
-  - script: |
-     if [ -f "jenkins/raspberrypi_c.sh" ]
-     then
-      sudo ./jenkins/raspberrypi_c.sh
-     fi 
-    displayName: 'build'  
-  - script: sudo rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
 - phase: gcc44
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/linux-c-ubuntu-gcc4.4"
