@@ -21,8 +21,61 @@ if(${no_logging})
     add_definitions(-DNO_LOGGING)
 endif()
 
+#do not add or build any tests of the dependencies
+set(original_run_e2e_tests ${run_e2e_tests})
+set(original_run_int_tests ${run_int_tests})
+set(original_run_unittests ${run_unittests})
+set(original_skip_samples ${skip_samples})
+
+set(run_e2e_tests OFF)
+set(run_int_tests OFF)
+set(run_unittests OFF)
+set(skip_samples ON)
+
+if (NOT ${use_installed_dependencies})
+    if (NOT TARGET azure_macro_utils_c)
+        add_subdirectory(deps/azure-macro-utils-c)
+        include_directories(${MACRO_UTILS_INC_FOLDER})
+    endif()
+    if (${original_run_e2e_tests} OR ${original_run_unittests})
+        if (NOT TARGET testrunnerswitcher)
+            if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/testrunnerswitcher/CMakeLists.txt")
+                execute_process(COMMAND git clone https://github.com/Azure/azure-c-testrunnerswitcher.git -q ${CMAKE_CURRENT_LIST_DIR}/deps/testrunnerswitcher)
+            endif()
+            add_subdirectory(deps/azure-c-testrunnerswitcher)
+        endif()
+        if (NOT TARGET ctest)
+            # Get the repo if it's not there
+            if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/ctest/CMakeLists.txt")
+                execute_process(COMMAND git clone https://github.com/Azure/azure-ctest.git -q ${CMAKE_CURRENT_LIST_DIR}/deps/ctest)
+            endif()
+            add_subdirectory(deps/azure-ctest)
+        endif()
+        if (NOT TARGET umock_c)
+            # Get the repo if it's not there
+            if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/umock-c/CMakeLists.txt")
+                execute_process(COMMAND git clone https://github.com/Azure/umock-c.git -q ${CMAKE_CURRENT_LIST_DIR}/deps/umock-c)
+            endif()
+            add_subdirectory(deps/umock-c)
+        endif()
+        enable_testing()
+    endif()
+    if (NOT TARGET aziotsharedutil)
+        add_subdirectory(deps/c-utility)
+        if (${original_run_unittests})
+            set(SHARED_UTIL_REAL_TEST_FOLDER ${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/tests/real_test_files CACHE INTERNAL "this is what needs to be included when doing test sources" FORCE)
+            add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/testtools EXCLUDE_FROM_ALL)
+        endif()
+    endif()
+endif()
+
+set(run_e2e_tests ${original_run_e2e_tests})
+set(run_int_tests ${original_run_int_tests})
+set(run_unittests ${original_run_unittests})
+set(skip_samples ${original_skip_samples})
+
 # Include the common build rules for the C SDK
-include("deps/c-utility/configs/azure_iot_build_rules.cmake")
+# include("deps/c-utility/configs/azure_iot_build_rules.cmake")
 
 if(${use_openssl})
     add_definitions(-DUSE_OPENSSL)
@@ -32,8 +85,6 @@ endif()
 
 #Use solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-enable_testing()
 
 if(${memory_trace})
     add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
@@ -45,39 +96,8 @@ endif()
 
 set(UHTTP_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
 
-#do not add or build any tests of the dependencies
-set(original_run_e2e_tests ${run_e2e_tests})
-set(original_run_unittests ${run_unittests})
-
-set(run_e2e_tests OFF)
-set(run_unittests OFF)
-
-include("dependencies.cmake")
-
-if (${original_run_unittests})
-    set(SHARED_UTIL_REAL_TEST_FOLDER ${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/tests/real_test_files CACHE INTERNAL "this is what needs to be included when doing test sources" FORCE)
-    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/testtools EXCLUDE_FROM_ALL)
-endif()
-
 set(use_cppunittest ON)
-set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
-
-set(run_e2e_tests ${original_run_e2e_tests})
-set(run_unittests ${original_run_unittests})
-
-if (MSVC)
-    detect_architecture("_M_AMD64" x86_64)
-    detect_architecture("_M_IX86" x86)
-    detect_architecture("_M_ARM" ARM)
-else()
-    detect_architecture("__x86_64__" x86_64)
-    detect_architecture("__i386__" x86)
-    detect_architecture("__arm__" ARM)
-endif()
-if (NOT DEFINED ARCHITECTURE OR ARCHITECTURE STREQUAL "")
-    set(ARCHITECTURE "GENERIC")
-endif()
-message(STATUS "target architecture: ${ARCHITECTURE}")
+#set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
 
 set(uhttp_c_files
     ./src/uhttp.c
@@ -96,10 +116,8 @@ add_library(uhttp ${uhttp_c_files} ${uhttp_h_files})
 setTargetBuildProperties(uhttp)
 target_link_libraries(uhttp aziotsharedutil)
 
-set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
-
 if (${run_unittests})
-    include("dependencies-test.cmake")
+    #include("dependencies-test.cmake")
     add_subdirectory(tests)
 endif()
 
