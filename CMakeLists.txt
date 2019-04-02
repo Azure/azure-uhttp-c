@@ -42,14 +42,14 @@ if (NOT ${use_installed_dependencies})
             if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/testrunnerswitcher/CMakeLists.txt")
                 execute_process(COMMAND git clone https://github.com/Azure/azure-c-testrunnerswitcher.git -q ${CMAKE_CURRENT_LIST_DIR}/deps/testrunnerswitcher)
             endif()
-            add_subdirectory(deps/azure-c-testrunnerswitcher)
+            add_subdirectory(deps/testrunnerswitcher)
         endif()
         if (NOT TARGET ctest)
             # Get the repo if it's not there
             if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/ctest/CMakeLists.txt")
                 execute_process(COMMAND git clone https://github.com/Azure/azure-ctest.git -q ${CMAKE_CURRENT_LIST_DIR}/deps/ctest)
             endif()
-            add_subdirectory(deps/azure-ctest)
+            add_subdirectory(deps/ctest)
         endif()
         if (NOT TARGET umock_c)
             # Get the repo if it's not there
@@ -74,9 +74,6 @@ set(run_int_tests ${original_run_int_tests})
 set(run_unittests ${original_run_unittests})
 set(skip_samples ${original_skip_samples})
 
-# Include the common build rules for the C SDK
-# include("deps/c-utility/configs/azure_iot_build_rules.cmake")
-
 if(${use_openssl})
     add_definitions(-DUSE_OPENSSL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_OPENSSL")
@@ -97,7 +94,7 @@ endif()
 set(UHTTP_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
 
 set(use_cppunittest ON)
-#set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
+set_platform_files(${SHARED_UTIL_FOLDER})
 
 set(uhttp_c_files
     ./src/uhttp.c
