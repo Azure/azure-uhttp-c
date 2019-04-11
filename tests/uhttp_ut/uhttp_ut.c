@@ -12,10 +12,10 @@
 #endif
 
 #include "testrunnerswitcher.h"
-#include "umock_c.h"
-#include "umocktypes_charptr.h"
-#include "umock_c_negative_tests.h"
-#include "umocktypes_bool.h"
+#include "umock_c/umock_c.h"
+#include "umock_c/umocktypes_charptr.h"
+#include "umock_c/umock_c_negative_tests.h"
+#include "umock_c/umocktypes_bool.h"
 
 #if defined _MSC_VER
 #pragma warning(disable: 4054) /* MSC incorrectly fires this */
@@ -55,7 +55,7 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 MOCKABLE_FUNCTION(, void, on_connection_callback, void*, callback_ctx, HTTP_CALLBACK_REASON, connect_result);
 MOCKABLE_FUNCTION(, void, on_error_callback, void*, callback_ctx, HTTP_CALLBACK_REASON, error_result);
 MOCKABLE_FUNCTION(, void, on_msg_recv_callback, void*, callback_ctx, HTTP_CALLBACK_REASON, request_result, const unsigned char*, content, size_t, content_length, unsigned int, status_code,
