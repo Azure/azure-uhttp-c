@@ -58,6 +58,8 @@ if (NOT ${use_installed_dependencies})
             add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/testtools EXCLUDE_FROM_ALL)
         endif()
     endif()
+else()
+    find_package(azure_c_shared_utility REQUIRED config)
 endif()
 
 set(run_e2e_tests ${original_run_e2e_tests})
