@@ -58,6 +58,20 @@ if (NOT ${use_installed_dependencies})
             add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/testtools EXCLUDE_FROM_ALL)
         endif()
     endif()
+else()
+    if (NOT azure_macro_utils_cFOUND)
+        find_package(azure_macro_utils_c REQUIRED CONFIG)
+    endif ()
+    if (NOT umock_cFOUND)
+        find_package(umock_c REQUIRED CONFIG)
+    endif ()
+    if (NOT azure_c_shared_utility_FOUND)
+        find_package(azure_c_shared_utility REQUIRED CONFIG)
+    endif ()
+    
+    include(${azure_c_shared_utility_DIR}/azure_c_shared_utilityConfig.cmake)
+    include(${azure_c_shared_utility_DIR}/azure_c_shared_utilityFunctions.cmake)
+    include(${azure_c_shared_utility_DIR}/azure_iot_build_rules.cmake)
 endif()
 
 set(run_e2e_tests ${original_run_e2e_tests})
@@ -107,7 +121,7 @@ set(uhttp_h_files
 )
 
 include_directories(./inc)
-include_directories(${SHARED_UTIL_INC_FOLDER})
+include_directories(${SHARED_UTIL_INC_FOLDER} ${MACRO_UTILS_INC_FOLDER} ${UMOCK_C_INC_FOLDER})
 
 include("configs/azure_uhttpFunctions.cmake")
 
