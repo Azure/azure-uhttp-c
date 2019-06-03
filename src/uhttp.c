@@ -83,6 +83,7 @@ typedef struct HTTP_CLIENT_HANDLE_DATA_TAG
     bool cert_type_ecc;
     char* x509_cert;
     char* x509_pk;
+    TLSIO_CRYPTODEV_PKEY* x509_cryptodev_pk;
     char* certificate;
     int connected;
 } HTTP_CLIENT_HANDLE_DATA;
@@ -991,6 +992,7 @@ void uhttp_client_destroy(HTTP_CLIENT_HANDLE handle)
         xio_destroy(handle->xio_handle);
         free(handle->certificate);
         free(handle->x509_pk);
+        free(handle->x509_cryptodev_pk);
         free(handle->x509_cert);
         free(handle);
     }
@@ -1028,9 +1030,15 @@ HTTP_CLIENT_RESULT uhttp_client_open(HTTP_CLIENT_HANDLE handle, const char* host
             http_data->connect_user_ctx = callback_ctx;
             http_data->port_num = port_num;
 
-            if (http_data->x509_cert != NULL && http_data->x509_pk != NULL)
+            if (http_data->x509_cert != NULL && (http_data->x509_pk != NULL || http_data->x509_cryptodev_pk != NULL))
             {
-                if (xio_setoption(http_data->xio_handle, SU_OPTION_X509_CERT, http_data->x509_cert) != 0 || xio_setoption(http_data->xio_handle, SU_OPTION_X509_PRIVATE_KEY, http_data->x509_pk) != 0)
+                int rc = xio_setoption(http_data->xio_handle, SU_OPTION_X509_CERT, http_data->x509_cert);
+                if (http_data->x509_cryptodev_pk != NULL) {
+                    rc |= xio_setoption(http_data->xio_handle, SU_OPTION_X509_CRYPTODEV_PRIVATE_KEY, http_data->x509_cryptodev_pk);
+                } else {
+                    rc |= xio_setoption(http_data->xio_handle, SU_OPTION_X509_PRIVATE_KEY, http_data->x509_pk);
+                }
+                if (rc != 0)
                 {
                     LogError("Failed setting x509 certificate");
                     result = HTTP_CLIENT_ERROR;
@@ -1356,16 +1364,10 @@ HTTP_CLIENT_RESULT uhttp_client_set_trace(HTTP_CLIENT_HANDLE handle, bool trace_
     return result;
 }
 
-HTTP_CLIENT_RESULT uhttp_client_set_X509_cert(HTTP_CLIENT_HANDLE handle, bool ecc_type, const char* certificate, const char* private_key)
-{
-    HTTP_CLIENT_RESULT result;
-    if (handle == NULL || certificate == NULL || private_key == NULL)
-    {
-        /* Codes_SRS_UHTTP_07_038: [If handle is NULL then http_client_set_trace shall return HTTP_CLIENT_INVALID_ARG] */
-        result = HTTP_CLIENT_INVALID_ARG;
-        LogError("invalid parameter handle: %p certificate: %p private_key: %p", handle, certificate, private_key);
-    }
-    else if (handle->recv_msg.recv_state != state_initial)
+static HTTP_CLIENT_RESULT uhttp_client_set_just_X509_cert(HTTP_CLIENT_HANDLE handle, bool ecc_type, const char* certificate) {
+    HTTP_CLIENT_RESULT result = HTTP_CLIENT_OK;
+
+    if (handle->recv_msg.recv_state != state_initial)
     {
         result = HTTP_CLIENT_INVALID_STATE;
         LogError("You must set the X509 certificates before opening the connection");
@@ -1378,7 +1380,57 @@ HTTP_CLIENT_RESULT uhttp_client_set_X509_cert(HTTP_CLIENT_HANDLE handle, bool ec
             result = HTTP_CLIENT_ERROR;
             LogError("failure allocating certificate");
         }
-        else if (mallocAndStrcpy_s(&handle->x509_pk, private_key) != 0)
+    }
+
+    return result;
+}
+
+HTTP_CLIENT_RESULT uhttp_client_set_X509_cert_cryptodev(HTTP_CLIENT_HANDLE handle, bool ecc_type, const char* certificate, TLSIO_CRYPTODEV_PKEY* private_key)
+{
+    HTTP_CLIENT_RESULT result;
+
+    if (handle == NULL || certificate == NULL || private_key == NULL)
+    {
+        /* Codes_SRS_UHTTP_07_038: [If handle is NULL then http_client_set_trace shall return HTTP_CLIENT_INVALID_ARG] */
+        result = HTTP_CLIENT_INVALID_ARG;
+        LogError("invalid parameter handle: %p certificate: %p private_key: %p", handle, certificate, private_key);
+    }
+
+    result = uhttp_client_set_just_X509_cert(handle, ecc_type, certificate);
+
+    if (result == HTTP_CLIENT_OK) {
+        handle->x509_cryptodev_pk = malloc(sizeof(TLSIO_CRYPTODEV_PKEY));
+        if (handle->x509_cryptodev_pk == NULL) {
+            free(handle->x509_cert);
+            handle->x509_cert = NULL;
+
+            result = HTTP_CLIENT_ERROR;
+            LogError("failure allocating private key");
+        }
+        else
+        {
+            memcpy(handle->x509_cryptodev_pk, private_key, sizeof(TLSIO_CRYPTODEV_PKEY));
+            result = HTTP_CLIENT_OK;
+        }
+    }
+    return result;
+}
+
+HTTP_CLIENT_RESULT uhttp_client_set_X509_cert(HTTP_CLIENT_HANDLE handle, bool ecc_type, const char* certificate, const char* private_key)
+{
+    HTTP_CLIENT_RESULT result;
+
+    if (handle == NULL || certificate == NULL || private_key == NULL)
+    {
+        /* Codes_SRS_UHTTP_07_038: [If handle is NULL then http_client_set_trace shall return HTTP_CLIENT_INVALID_ARG] */
+        result = HTTP_CLIENT_INVALID_ARG;
+        LogError("invalid parameter handle: %p certificate: %p private_key: %p", handle, certificate, private_key);
+    }
+
+    result = uhttp_client_set_just_X509_cert(handle, ecc_type, certificate);
+
+    if (result == HTTP_CLIENT_OK) {
+        if (mallocAndStrcpy_s(&handle->x509_pk, private_key) != 0)
         {
             free(handle->x509_cert);
             handle->x509_cert = NULL;
