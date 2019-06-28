@@ -2361,7 +2361,6 @@ TEST_FUNCTION(uhttp_client_set_option_call_fail)
     uhttp_client_destroy(clientHandle);
 }
 
-
 TEST_FUNCTION(uhttp_client_set_option_null_handle_fail)
 {
     // act
@@ -2372,5 +2371,31 @@ TEST_FUNCTION(uhttp_client_set_option_null_handle_fail)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
+TEST_FUNCTION(uhttp_client_get_underlying_xio_null_handle_fail)
+{
+    // act
+    XIO_HANDLE xio_handle = uhttp_client_get_underlying_xio(NULL);
+
+    // assert
+    ASSERT_IS_NULL(xio_handle);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+TEST_FUNCTION(uhttp_client_get_underlying_xio_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    umock_c_reset_all_calls();
+
+    // act
+    XIO_HANDLE xio_handle = uhttp_client_get_underlying_xio(clientHandle);
+
+    // assert
+    ASSERT_IS_NOT_NULL(xio_handle);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_destroy(clientHandle);
+}
 
 END_TEST_SUITE(uhttp_ut)

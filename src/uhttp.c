@@ -1107,7 +1107,7 @@ void uhttp_client_close(HTTP_CLIENT_HANDLE handle, ON_HTTP_CLOSED_CALLBACK on_cl
         }
 
         http_data->recv_msg.status_code = 0;
-        http_data->recv_msg.recv_state = state_closing;
+        http_data->recv_msg.recv_state = state_closed;
         http_data->recv_msg.total_body_len = 0;
         free(http_data->host_name);
         http_data->host_name = NULL;
@@ -1461,5 +1461,20 @@ HTTP_CLIENT_RESULT uhttp_client_set_option(HTTP_CLIENT_HANDLE handle, const char
 
     }
 
+    return result;
+}
+
+XIO_HANDLE uhttp_client_get_underlying_xio(HTTP_CLIENT_HANDLE handle)
+{
+    XIO_HANDLE result;
+    if (handle == NULL)
+    {
+        LogError("invalid parameter handle: %p", handle);
+        result = NULL;
+    }
+    else
+    {
+        result = handle->xio_handle;
+    }
     return result;
 }
