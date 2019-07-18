@@ -1654,6 +1654,34 @@ TEST_FUNCTION(uhttp_client_onBytesReceived_succeed_2)
     uhttp_client_destroy(clientHandle);
 }
 
+TEST_FUNCTION(uhttp_client_onBytesReceived_state_complete_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, (void*)TEST_HTTP_EXAMPLE);
+    (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+    (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+
+    size_t http_len = strlen(TEST_SMALL_HTTP_EXAMPLE);
+    g_onBytesRecv(g_onBytesRecv_ctx, (const unsigned char*)TEST_SMALL_HTTP_EXAMPLE, http_len);
+    umock_c_reset_all_calls();
+
+    // act
+    STRICT_EXPECTED_CALL(HTTPHeaders_Alloc());
+    STRICT_EXPECTED_CALL(BUFFER_new());
+    setup_uhttp_client_onBytesReceived_small_ex();
+
+    http_len = strlen(TEST_SMALL_HTTP_EXAMPLE);
+    g_onBytesRecv(g_onBytesRecv_ctx, (const unsigned char*)TEST_SMALL_HTTP_EXAMPLE, http_len);
+
+    // assert
+    ASSERT_ARE_EQUAL(HTTP_CALLBACK_REASON, HTTP_CALLBACK_REASON_OK, g_http_cb_reason);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
+    uhttp_client_destroy(clientHandle);
+}
+
 /* Tests_SRS_UHTTP_07_015: [on_bytes_received shall add the Content-Length http header item to the request.] */
 /* Tests_SRS_UHTTP_07_047: [ If context or buffer is NULL on_bytes_received shall do nothing. ] */
 /* Tests_SRS_UHTTP_07_048: [ If any error is encountered on_bytes_received shall set the state to error. ] */
