@@ -8,6 +8,8 @@ project(uhttp)
 include(GNUInstallDirs)
 
 set(UHTTP_VERSION 1.0.1)
+string(REPLACE "." ";" VERSION_LIST ${UHTTP_VERSION})
+list(GET VERSION_LIST 0 UHTTP_VERSION_MAJOR)
 
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
@@ -128,6 +130,9 @@ include_directories(${SHARED_UTIL_INC_FOLDER} ${MACRO_UTILS_INC_FOLDER} ${UMOCK_
 include("configs/azure_uhttpFunctions.cmake")
 
 add_library(uhttp ${uhttp_c_files} ${uhttp_h_files})
+set_target_properties(uhttp PROPERTIES
+  VERSION ${UHTTP_VERSION}
+  SOVERSION ${UHTTP_VERSION_MAJOR})
 setTargetBuildProperties(uhttp)
 target_link_libraries(uhttp aziotsharedutil)
 
