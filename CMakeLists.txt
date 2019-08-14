@@ -168,11 +168,26 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
+configure_file(configs/uhttpConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/uhttp/uhttpConfig.cmake"
+  COPYONLY
+  )
+
 install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
-    DESTINATION
-        ${package_location}
-)
+  FILES
+  configs/uhttpConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION
+  ${package_location}
+  COMPONENT
+   Devel
+  )
+
+install(EXPORT uhttpTargets
+  FILE
+    uhttpTargets.cmake
+  DESTINATION
+    ${package_location}
+    )
 
 compileTargetAsC99(uhttp)
