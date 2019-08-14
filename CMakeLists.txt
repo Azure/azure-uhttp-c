@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(uhttp)
 
+include(GNUInstallDirs)
+
 set(UHTTP_VERSION 1.0.1)
 
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
@@ -139,7 +141,7 @@ if (NOT ${skip_samples})
 endif()
 
 # Install uhttp
-set(package_location "cmake")
+set(package_location "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR "lib")
@@ -148,7 +150,7 @@ endif()
 install(TARGETS uhttp EXPORT uhttpTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
 )
 install(FILES ${uhttp_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_uhttp_c)
