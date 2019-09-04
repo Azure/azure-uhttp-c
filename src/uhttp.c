@@ -384,12 +384,54 @@ static int convert_char_to_hex(const unsigned char* hexText, size_t len)
     return result;
 }
 
+static int setup_init_recv_msg(HTTP_RECV_DATA* recv_msg)
+{
+    int result;
+    recv_msg->status_code = 0;
+    recv_msg->recv_state = state_initial;
+    recv_msg->total_body_len = 0;
+    if (recv_msg->resp_header != NULL)
+    {
+        HTTPHeaders_Free(recv_msg->resp_header);
+    }
+    if (recv_msg->msg_body != NULL)
+    {
+        BUFFER_delete(recv_msg->msg_body);
+    }
+    if ((recv_msg->resp_header = HTTPHeaders_Alloc()) == NULL)
+    {
+        /* Codes_SRS_UHTTP_07_017: [If any failure encountered http_client_execute_request shall return HTTP_CLIENT_ERROR] */
+        LogError("Failure allocating http http_data items");
+        result = HTTP_CLIENT_ERROR;
+    }
+    else if ((recv_msg->msg_body = BUFFER_new()) == NULL)
+    {
+        /* Codes_SRS_UHTTP_07_017: [If any failure encountered http_client_execute_request shall return HTTP_CLIENT_ERROR] */
+        LogError("Failure allocating http data items");
+        HTTPHeaders_Free(recv_msg->resp_header);
+        recv_msg->resp_header = NULL;
+        result = HTTP_CLIENT_ERROR;
+    }
+    else
+    {
+        result = 0;
+    }
+    return result;
+}
+
 static void on_bytes_received(void* context, const unsigned char* buffer, size_t len)
 {
     HTTP_CLIENT_HANDLE_DATA* http_data = (HTTP_CLIENT_HANDLE_DATA*)context;
 
     if (http_data != NULL && buffer != NULL && len > 0 && http_data->recv_msg.recv_state != state_error)
     {
+        if (http_data->recv_msg.recv_state == state_parse_complete)
+        {
+            // The callback is getting called during a new send.
+            setup_init_recv_msg(&http_data->recv_msg);
+
+        }
+
         if (http_data->recv_msg.recv_state == state_initial || http_data->recv_msg.recv_state == state_open)
         {
             if (initialize_received_data(http_data) != 0)
@@ -637,14 +679,16 @@ static void on_bytes_received(void* context, const unsigned char* buffer, size_t
 
                 // Loop through headers
                 size_t count;
-                HTTPHeaders_GetHeaderCount(http_data->recv_msg.resp_header, &count);
-                for (size_t index = 0; index < count; index++)
+                if (HTTPHeaders_GetHeaderCount(http_data->recv_msg.resp_header, &count) == 0)
                 {
-                    char* header;
-                    if (HTTPHeaders_GetHeader(http_data->recv_msg.resp_header, index, &header) == HTTP_HEADERS_OK)
+                    for (size_t index = 0; index < count; index++)
                     {
-                        LOG(AZ_LOG_TRACE, LOG_LINE, "%s", header);
-                        free(header);
+                        char* header;
+                        if (HTTPHeaders_GetHeader(http_data->recv_msg.resp_header, index, &header) == HTTP_HEADERS_OK)
+                        {
+                            LOG(AZ_LOG_TRACE, LOG_LINE, "%s", header);
+                            free(header);
+                        }
                     }
                 }
                 if (http_data->trace_body && reply_len > 0)
@@ -1107,7 +1151,7 @@ void uhttp_client_close(HTTP_CLIENT_HANDLE handle, ON_HTTP_CLOSED_CALLBACK on_cl
         }
 
         http_data->recv_msg.status_code = 0;
-        http_data->recv_msg.recv_state = state_closing;
+        http_data->recv_msg.recv_state = state_closed;
         http_data->recv_msg.total_body_len = 0;
         free(http_data->host_name);
         http_data->host_name = NULL;
@@ -1143,31 +1187,12 @@ HTTP_CLIENT_RESULT uhttp_client_execute_request(HTTP_CLIENT_HANDLE handle, HTTP_
     {
         HTTP_CLIENT_HANDLE_DATA* http_data = (HTTP_CLIENT_HANDLE_DATA*)handle;
 
-        http_data->recv_msg.status_code = 0;
-        http_data->recv_msg.recv_state = state_initial;
-        http_data->recv_msg.total_body_len = 0;
         http_data->recv_msg.on_request_callback = on_request_callback;
         http_data->recv_msg.user_ctx = callback_ctx;
-        if (http_data->recv_msg.resp_header != NULL)
-        {
-            HTTPHeaders_Free(http_data->recv_msg.resp_header);
-        }
-        if (http_data->recv_msg.msg_body != NULL)
-        {
-            BUFFER_delete(http_data->recv_msg.msg_body);
-        }
-        if ((http_data->recv_msg.resp_header = HTTPHeaders_Alloc()) == NULL)
+        if (setup_init_recv_msg(&http_data->recv_msg) != 0)
         {
             /* Codes_SRS_UHTTP_07_017: [If any failure encountered http_client_execute_request shall return HTTP_CLIENT_ERROR] */
             LogError("Failure allocating http http_data items");
-            result = HTTP_CLIENT_ERROR;
-        }
-        else if ( (http_data->recv_msg.msg_body = BUFFER_new() ) == NULL)
-        {
-            /* Codes_SRS_UHTTP_07_017: [If any failure encountered http_client_execute_request shall return HTTP_CLIENT_ERROR] */
-            LogError("Failure allocating http data items");
-            HTTPHeaders_Free(http_data->recv_msg.resp_header);
-            http_data->recv_msg.resp_header = NULL;
             result = HTTP_CLIENT_ERROR;
         }
         else
@@ -1461,5 +1486,20 @@ HTTP_CLIENT_RESULT uhttp_client_set_option(HTTP_CLIENT_HANDLE handle, const char
 
     }
 
+    return result;
+}
+
+XIO_HANDLE uhttp_client_get_underlying_xio(HTTP_CLIENT_HANDLE handle)
+{
+    XIO_HANDLE result;
+    if (handle == NULL)
+    {
+        LogError("invalid parameter handle: %p", handle);
+        result = NULL;
+    }
+    else
+    {
+        result = handle->xio_handle;
+    }
     return result;
 }
