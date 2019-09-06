@@ -569,7 +569,7 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
     TEST_MUTEX_RELEASE(g_testByTest);
 }
 
-static void setup_uhttp_client_execute_request_no_content_mocks()
+static void setup_uhttp_client_execute_request_no_content_mocks(void)
 {
     STRICT_EXPECTED_CALL(HTTPHeaders_Alloc());
     STRICT_EXPECTED_CALL(BUFFER_new());
@@ -587,7 +587,7 @@ static void setup_uhttp_client_execute_request_no_content_mocks()
     STRICT_EXPECTED_CALL(STRING_construct(IGNORED_PTR_ARG));
 }
 
-static void setup_uhttp_client_execute_request_with_content_mocks()
+static void setup_uhttp_client_execute_request_with_content_mocks(void)
 {
     g_header_count = 1;
 
@@ -613,7 +613,7 @@ static void setup_uhttp_client_execute_request_with_content_mocks()
     STRICT_EXPECTED_CALL(STRING_construct(IGNORED_PTR_ARG));
 }
 
-static void setup_uhttp_client_dowork_no_msg_mocks()
+static void setup_uhttp_client_dowork_no_msg_mocks(void)
 {
     STRICT_EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
@@ -635,7 +635,7 @@ static void setup_uhttp_client_dowork_no_msg_mocks()
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG));
 }
 
-static void setup_uhttp_client_dowork_msg_mocks()
+static void setup_uhttp_client_dowork_msg_mocks(void)
 {
     EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
@@ -661,7 +661,7 @@ static void setup_uhttp_client_dowork_msg_mocks()
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
 }
 
-static void SetupProcessHeader()
+static void SetupProcessHeader(void)
 {
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -670,7 +670,7 @@ static void SetupProcessHeader()
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 }
 
-static void setup_uhttp_client_onBytesReceived_small_ex()
+static void setup_uhttp_client_onBytesReceived_small_ex(void)
 {
     STRICT_EXPECTED_CALL(BUFFER_new());
     STRICT_EXPECTED_CALL(BUFFER_append_build(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
