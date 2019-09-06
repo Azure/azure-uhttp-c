@@ -632,16 +632,16 @@ static void setup_uhttp_client_dowork_no_msg_mocks()
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG,IGNORED_PTR_ARG)).CallCannotFail();
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG));
 }
 
 static void setup_uhttp_client_dowork_msg_mocks()
 {
     EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG))
-        .SetReturn(TEST_HTTP_CONTENT_LENGTH);
+        .SetReturn(TEST_HTTP_CONTENT_LENGTH).CallCannotFail();
     STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).CallCannotFail();
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(STRING_construct(IGNORED_PTR_ARG));
@@ -657,8 +657,8 @@ static void setup_uhttp_client_dowork_msg_mocks()
     STRICT_EXPECTED_CALL(BUFFER_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG,IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG,IGNORED_PTR_ARG)).CallCannotFail();
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
 }
 
 static void SetupProcessHeader()
@@ -1344,8 +1344,6 @@ TEST_FUNCTION(uhttp_client_dowork_msg_fails)
     setup_uhttp_client_dowork_msg_mocks();
 
     umock_c_negative_tests_snapshot();
-
-    //size_t calls_cannot_fail[] = { 0, 1, 3, 4, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19 };
 
     // act
     size_t count = umock_c_negative_tests_call_count();
