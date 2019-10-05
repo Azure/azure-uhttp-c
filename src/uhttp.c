@@ -24,6 +24,7 @@
 #define TIME_MAX_BUFFER     16
 #define HTTP_CRLF_LEN       2
 #define HTTP_END_TOKEN_LEN  4
+#define MAX_CONTENT_LENGTH  16
 
 static const char* HTTP_REQUEST_LINE_FMT = "%s %s HTTP/1.1\r\n";
 static const char* HTTP_HOST = "Host";
@@ -834,7 +835,8 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
         }
         if (!hostname_found)
         {
-            size_t host_len = strlen(HTTP_HOST)+strlen(hostname)+8+2;
+            // calculate the size of the host header
+            size_t host_len = strlen(HTTP_HOST)+strlen(hostname)+MAX_CONTENT_LENGTH+2;
             char* host_header = malloc(host_len+1);
             if (host_header == NULL)
             {
@@ -860,7 +862,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
         if (result == 0)
         {
             /* Codes_SRS_UHTTP_07_015: [uhttp_client_execute_request shall add the Content-Length to the request if the contentLength is > 0] */
-            size_t fmtLen = strlen(HTTP_CONTENT_LEN)+strlen(HTTP_CRLF_VALUE)+8;
+            size_t fmtLen = strlen(HTTP_CONTENT_LEN)+strlen(HTTP_CRLF_VALUE)+MAX_CONTENT_LENGTH+2;
             char* content = malloc(fmtLen+1);
             if (content == NULL)
             {
