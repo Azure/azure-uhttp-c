@@ -513,6 +513,9 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(HTTPHeaders_Clone, my_HTTPHeaders_Clone);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(HTTPHeaders_Clone, NULL);
 
+    REGISTER_GLOBAL_MOCK_RETURN(HTTPHeaders_AddHeaderNameValuePair, HTTP_HEADERS_OK);
+    REGISTER_GLOBAL_MOCK_FAIL_RETURN(HTTPHeaders_AddHeaderNameValuePair, HTTP_HEADERS_ERROR);
+
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_create, my_singlylinkedlist_create);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(singlylinkedlist_create, NULL);
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_destroy, my_singlylinkedlist_destroy);
@@ -566,21 +569,7 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
     TEST_MUTEX_RELEASE(g_testByTest);
 }
 
-static int should_skip_index(size_t current_index, const size_t skip_array[], size_t length)
-{
-    int result = 0;
-    for (size_t index = 0; index < length; index++)
-    {
-        if (current_index == skip_array[index])
-        {
-            result = __LINE__;
-            break;
-        }
-    }
-    return result;
-}
-
-static void setup_uhttp_client_execute_request_no_content_mocks()
+static void setup_uhttp_client_execute_request_no_content_mocks(void)
 {
     STRICT_EXPECTED_CALL(HTTPHeaders_Alloc());
     STRICT_EXPECTED_CALL(BUFFER_new());
@@ -598,7 +587,7 @@ static void setup_uhttp_client_execute_request_no_content_mocks()
     STRICT_EXPECTED_CALL(STRING_construct(IGNORED_PTR_ARG));
 }
 
-static void setup_uhttp_client_execute_request_with_content_mocks()
+static void setup_uhttp_client_execute_request_with_content_mocks(void)
 {
     g_header_count = 1;
 
@@ -624,55 +613,55 @@ static void setup_uhttp_client_execute_request_with_content_mocks()
     STRICT_EXPECTED_CALL(STRING_construct(IGNORED_PTR_ARG));
 }
 
-static void setup_uhttp_client_dowork_no_msg_mocks()
+static void setup_uhttp_client_dowork_no_msg_mocks(void)
 {
-    EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG)).CallCannotFail();
+    STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG)).CallCannotFail();
+    STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).CallCannotFail();
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(STRING_construct(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_concat_with_STRING(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).CallCannotFail();
     STRICT_EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(BUFFER_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG,IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG,IGNORED_PTR_ARG)).CallCannotFail();
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG));
 }
 
-static void setup_uhttp_client_dowork_msg_mocks()
+static void setup_uhttp_client_dowork_msg_mocks(void)
 {
     EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(BUFFER_length(IGNORED_PTR_ARG))
-        .SetReturn(TEST_HTTP_CONTENT_LENGTH);
-    STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG));
+        .SetReturn(TEST_HTTP_CONTENT_LENGTH).CallCannotFail();
+    STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).CallCannotFail();
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(STRING_construct(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_concat_with_STRING(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).CallCannotFail();
     STRICT_EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(BUFFER_u_char(IGNORED_PTR_ARG))
-        .SetReturn((unsigned char*)TEST_HTTP_CONTENT);
+        .SetReturn((unsigned char*)TEST_HTTP_CONTENT).CallCannotFail();
     STRICT_EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(BUFFER_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG,IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG,IGNORED_PTR_ARG)).CallCannotFail();
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG)).CallCannotFail();
 }
 
-static void SetupProcessHeader()
+static void SetupProcessHeader(void)
 {
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -681,7 +670,7 @@ static void SetupProcessHeader()
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 }
 
-static void setup_uhttp_client_onBytesReceived_small_ex()
+static void setup_uhttp_client_onBytesReceived_small_ex(void)
 {
     STRICT_EXPECTED_CALL(BUFFER_new());
     STRICT_EXPECTED_CALL(BUFFER_append_build(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
@@ -1143,24 +1132,20 @@ TEST_FUNCTION(uhttp_client_execute_request_no_content_fails)
 
     umock_c_negative_tests_snapshot();
 
-    size_t calls_cannot_fail[] = { 7, 10, 12, 13, 15 };
-
     // act
     size_t count = umock_c_negative_tests_call_count();
     for (size_t index = 0; index < count; index++)
     {
-        if (should_skip_index(index, calls_cannot_fail, sizeof(calls_cannot_fail)/sizeof(calls_cannot_fail[0])) != 0)
+        if (umock_c_negative_tests_can_call_fail(index))
         {
-            continue;
+            umock_c_negative_tests_reset();
+            umock_c_negative_tests_fail_call(index);
+
+            HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+
+            // assert
+            ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_execute_request failure in test %lu/%lu", index, count);
         }
-
-        umock_c_negative_tests_reset();
-        umock_c_negative_tests_fail_call(index);
-
-        HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
-
-        // assert
-        ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_execute_request failure in test %lu/%lu", index, count);
     }
 
     // Cleanup
@@ -1259,24 +1244,20 @@ TEST_FUNCTION(uhttp_client_execute_request_with_content_fails)
 
     umock_c_negative_tests_snapshot();
 
-    size_t calls_cannot_fail[] = { 6, 9, 10, 11, 13, 16 };
-
     //act
     size_t count = umock_c_negative_tests_call_count();
     for (size_t index = 0; index < count; index++)
     {
-        if (should_skip_index(index, calls_cannot_fail, sizeof(calls_cannot_fail)/sizeof(calls_cannot_fail[0])) != 0)
+        if (umock_c_negative_tests_can_call_fail(index))
         {
-            continue;
+            umock_c_negative_tests_reset();
+            umock_c_negative_tests_fail_call(index);
+
+            HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+
+            // assert
+            ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_execute_request failure in test %lu/%lu", index, count);
         }
-
-        umock_c_negative_tests_reset();
-        umock_c_negative_tests_fail_call(index);
-
-        HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
-
-        // assert
-        ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_execute_request failure in test %lu/%lu", index, count);
     }
 
     // Cleanup
@@ -1364,32 +1345,28 @@ TEST_FUNCTION(uhttp_client_dowork_msg_fails)
 
     umock_c_negative_tests_snapshot();
 
-    size_t calls_cannot_fail[] = { 0, 1, 3, 4, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19 };
-
     // act
     size_t count = umock_c_negative_tests_call_count();
     for (size_t index = 0; index < count; index++)
     {
-        if (should_skip_index(index, calls_cannot_fail, sizeof(calls_cannot_fail)/sizeof(calls_cannot_fail[0])) != 0)
+        if (umock_c_negative_tests_can_call_fail(index))
         {
-            continue;
+            // We fail singlylinkedlist_item_get_value function which will cause a
+            // memory leak if this is called
+            if (index != 2)
+            {
+                (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+                (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+            }
+
+            umock_c_negative_tests_reset();
+            umock_c_negative_tests_fail_call(index);
+
+            uhttp_client_dowork(clientHandle);
+
+            uhttp_client_close(clientHandle, on_closed_callback, NULL);
+            g_on_close_complete(g_on_close_complete_context);
         }
-
-        // We fail singlylinkedlist_item_get_value function which will cause a
-        // memory leak if this is called
-        if (index != 2)
-        {
-            (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
-            (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
-        }
-
-        umock_c_negative_tests_reset();
-        umock_c_negative_tests_fail_call(index);
-
-        uhttp_client_dowork(clientHandle);
-
-        uhttp_client_close(clientHandle, on_closed_callback, NULL);
-        g_on_close_complete(g_on_close_complete_context);
     }
 
     // Cleanup
@@ -1435,24 +1412,19 @@ TEST_FUNCTION(uhttp_client_dowork_no_msg_fails)
     setup_uhttp_client_dowork_no_msg_mocks();
 
     umock_c_negative_tests_snapshot();
-
-    size_t calls_cannot_fail[] = { 0, 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 16 };
-
     // act
     size_t count = umock_c_negative_tests_call_count();
     for (size_t index = 0; index < count; index++)
     {
-        if (should_skip_index(index, calls_cannot_fail, sizeof(calls_cannot_fail)/sizeof(calls_cannot_fail[0])) != 0)
+        if (umock_c_negative_tests_can_call_fail(index))
         {
-            continue;
+            (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+
+            umock_c_negative_tests_reset();
+            umock_c_negative_tests_fail_call(index);
+
+            uhttp_client_dowork(clientHandle);
         }
-
-        (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
-
-        umock_c_negative_tests_reset();
-        umock_c_negative_tests_fail_call(index);
-
-        uhttp_client_dowork(clientHandle);
     }
 
     // Cleanup
@@ -2023,24 +1995,22 @@ TEST_FUNCTION(uhttp_client_onBytesReceived_small_ex_fail)
 
     umock_c_negative_tests_snapshot();
 
-    size_t calls_cannot_fail[] = { 2, 6, 7, 11, 12, 14, 16, 17, 19, 20, 21, 22 };
+    //size_t calls_cannot_fail[] = { 2, 6, 7, 11, 12, 14, 16, 17, 19, 20, 21, 22 };
 
     //act
     size_t count = umock_c_negative_tests_call_count();
     for (size_t index = 0; index < count; index++)
     {
-        if (should_skip_index(index, calls_cannot_fail, sizeof(calls_cannot_fail)/sizeof(calls_cannot_fail[0])) != 0)
+        if (umock_c_negative_tests_can_call_fail(index))
         {
-            continue;
+            umock_c_negative_tests_reset();
+            umock_c_negative_tests_fail_call(index);
+
+            size_t http_len = strlen(TEST_SMALL_HTTP_EXAMPLE);
+            g_onBytesRecv(g_onBytesRecv_ctx, (const unsigned char*)TEST_SMALL_HTTP_EXAMPLE, http_len);
+
+            // assert
         }
-
-        umock_c_negative_tests_reset();
-        umock_c_negative_tests_fail_call(index);
-
-        size_t http_len = strlen(TEST_SMALL_HTTP_EXAMPLE);
-        g_onBytesRecv(g_onBytesRecv_ctx, (const unsigned char*)TEST_SMALL_HTTP_EXAMPLE, http_len);
-
-        // assert
     }
 
     // Cleanup
