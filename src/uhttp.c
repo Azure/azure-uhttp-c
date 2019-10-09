@@ -104,7 +104,7 @@ static int initialize_received_data(HTTP_CLIENT_HANDLE_DATA* http_data)
 {
     int result = 0;
 
-    // Initialize data if neccessary
+    // Initialize data if necessary
     if (http_data->recv_msg.resp_header == NULL)
     {
         http_data->recv_msg.resp_header = HTTPHeaders_Alloc();
@@ -1031,6 +1031,10 @@ void uhttp_client_destroy(HTTP_CLIENT_HANDLE handle)
     if (handle != NULL)
     {
         /* Codes_SRS_UHTTP_07_005: [uhttp_client_destroy shall free any resource that is allocated in this translation unit] */
+        if(handle->host_name != NULL)
+        {
+            free(handle->host_name);
+        }
         singlylinkedlist_destroy(handle->data_list);
         xio_destroy(handle->xio_handle);
         free(handle->certificate);
