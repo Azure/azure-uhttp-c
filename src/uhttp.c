@@ -28,11 +28,10 @@
 
 static const char* HTTP_REQUEST_LINE_FMT = "%s %s HTTP/1.1\r\n";
 static const char* HTTP_HOST = "Host";
+// The following header names MUST be lowercase as they are used for HTTP response header comparison:
 static const char* HTTP_CONTENT_LEN = "content-length";
 static const char* HTTP_TRANSFER_ENCODING = "transfer-encoding";
-//static const char* HTTP_CHUNKED_ENCODING_HDR = "Transfer-Encoding: chunked\r\n";
 static const char* HTTP_CRLF_VALUE = "\r\n";
-//static const char* FORMAT_HEX_CHAR = "0x%02x ";
 
 typedef enum RESPONSE_MESSAGE_STATE_TAG
 {
@@ -862,7 +861,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
         if (result == 0)
         {
             /* Codes_SRS_UHTTP_07_015: [uhttp_client_execute_request shall add the Content-Length to the request if the contentLength is > 0] */
-            size_t fmtLen = strlen(HTTP_CONTENT_LEN)+strlen(HTTP_CRLF_VALUE)+MAX_CONTENT_LENGTH+2;
+            size_t fmtLen = strlen(HTTP_CONTENT_LEN)+HTTP_CRLF_LEN+8;
             char* content = malloc(fmtLen+1);
             if (content == NULL)
             {
@@ -1030,10 +1029,10 @@ HTTP_CLIENT_HANDLE uhttp_client_create(const IO_INTERFACE_DESCRIPTION* io_interf
 void uhttp_client_destroy(HTTP_CLIENT_HANDLE handle)
 {
     /* Codes_SRS_UHTTP_07_004: [ If handle is NULL then uhttp_client_destroy shall do nothing ] */
-    if (handle != NULL)
+    if (handle)
     {
         /* Codes_SRS_UHTTP_07_005: [uhttp_client_destroy shall free any resource that is allocated in this translation unit] */
-        if(handle->host_name != NULL)
+        if(handle->host_name)
         {
             free(handle->host_name);
         }
