@@ -1029,12 +1029,13 @@ HTTP_CLIENT_HANDLE uhttp_client_create(const IO_INTERFACE_DESCRIPTION* io_interf
 void uhttp_client_destroy(HTTP_CLIENT_HANDLE handle)
 {
     /* Codes_SRS_UHTTP_07_004: [ If handle is NULL then uhttp_client_destroy shall do nothing ] */
-    if (handle)
+    if (handle != NULL)
     {
         /* Codes_SRS_UHTTP_07_005: [uhttp_client_destroy shall free any resource that is allocated in this translation unit] */
-        if(handle->host_name)
+        if(handle->host_name != NULL)
         {
             free(handle->host_name);
+            handle->host_name = NULL;
         }
         singlylinkedlist_destroy(handle->data_list);
         xio_destroy(handle->xio_handle);
@@ -1063,65 +1064,75 @@ HTTP_CLIENT_RESULT uhttp_client_open(HTTP_CLIENT_HANDLE handle, const char* host
             LogError("Unable to open previously open client.");
             result = HTTP_CLIENT_INVALID_STATE;
         }
-        else if (mallocAndStrcpy_s(&http_data->host_name, host) != 0)
-        {
-            LogError("copying hostname has failed");
-            result = HTTP_CLIENT_ERROR;
-        }
-        /* Codes_SRS_UHTTP_07_007: [http_client_connect shall attempt to open the xio_handle. ] */
         else
         {
-            result = HTTP_CLIENT_OK;
-            http_data->recv_msg.recv_state = state_opening;
-            http_data->on_connect = on_connect;
-            http_data->connect_user_ctx = callback_ctx;
-            http_data->port_num = port_num;
-
-            if (http_data->x509_cert != NULL && http_data->x509_pk != NULL)
+            if (http_data->host_name != NULL)
             {
-                if (xio_setoption(http_data->xio_handle, SU_OPTION_X509_CERT, http_data->x509_cert) != 0 || xio_setoption(http_data->xio_handle, SU_OPTION_X509_PRIVATE_KEY, http_data->x509_pk) != 0)
-                {
-                    LogError("Failed setting x509 certificate");
-                    result = HTTP_CLIENT_ERROR;
-                    free(http_data->host_name);
-                    http_data->host_name = NULL;
-                    http_data->on_connect = NULL;
-                    http_data->connect_user_ctx = NULL;
-                    http_data->port_num = 0;
-                }
-            }
-            if (result == HTTP_CLIENT_OK && http_data->certificate != NULL)
-            {
-                if (xio_setoption(http_data->xio_handle, OPTION_TRUSTED_CERT, http_data->certificate) != 0)
-                {
-                    LogError("Failed setting Trusted certificate");
-                    result = HTTP_CLIENT_ERROR;
-                    free(http_data->host_name);
-                    http_data->host_name = NULL;
-                    http_data->on_connect = NULL;
-                    http_data->connect_user_ctx = NULL;
-                    http_data->port_num = 0;
-                }
+                free(http_data->host_name);
+                handle->host_name = NULL;
             }
 
-            if (result == HTTP_CLIENT_OK)
+            if (mallocAndStrcpy_s(&http_data->host_name, host) != 0)
             {
-                if (xio_open(http_data->xio_handle, on_xio_open_complete, http_data, on_bytes_received, http_data, on_io_error, http_data) != 0)
-                {
-                    /* Codes_SRS_UHTTP_07_044: [ if a failure is encountered on xio_open uhttp_client_open shall return HTTP_CLIENT_OPEN_REQUEST_FAILED. ] */
-                    LogError("opening xio failed");
-                    free(http_data->host_name);
-                    http_data->host_name = NULL;
-                    http_data->on_connect = NULL;
-                    http_data->connect_user_ctx = NULL;
-                    http_data->port_num = 0;
+                LogError("copying hostname has failed");
+                result = HTTP_CLIENT_ERROR;
+            }
+            /* Codes_SRS_UHTTP_07_007: [http_client_connect shall attempt to open the xio_handle. ] */
+            else
+            {
+                result = HTTP_CLIENT_OK;
+                http_data->recv_msg.recv_state = state_opening;
+                http_data->on_connect = on_connect;
+                http_data->connect_user_ctx = callback_ctx;
+                http_data->port_num = port_num;
 
-                    result = HTTP_CLIENT_OPEN_FAILED;
-                }
-                else
+                if (http_data->x509_cert != NULL && http_data->x509_pk != NULL)
                 {
-                    /* Codes_SRS_UHTTP_07_008: [If http_client_connect succeeds then it shall return HTTP_CLIENT_OK] */
-                    result = HTTP_CLIENT_OK;
+                    if (xio_setoption(http_data->xio_handle, SU_OPTION_X509_CERT, http_data->x509_cert) != 0 || xio_setoption(http_data->xio_handle, SU_OPTION_X509_PRIVATE_KEY, http_data->x509_pk) != 0)
+                    {
+                        LogError("Failed setting x509 certificate");
+                        result = HTTP_CLIENT_ERROR;
+                        free(http_data->host_name);
+                        http_data->host_name = NULL;
+                        http_data->on_connect = NULL;
+                        http_data->connect_user_ctx = NULL;
+                        http_data->port_num = 0;
+                    }
+                }
+
+                if (result == HTTP_CLIENT_OK && http_data->certificate != NULL)
+                {
+                    if (xio_setoption(http_data->xio_handle, OPTION_TRUSTED_CERT, http_data->certificate) != 0)
+                    {
+                        LogError("Failed setting Trusted certificate");
+                        result = HTTP_CLIENT_ERROR;
+                        free(http_data->host_name);
+                        http_data->host_name = NULL;
+                        http_data->on_connect = NULL;
+                        http_data->connect_user_ctx = NULL;
+                        http_data->port_num = 0;
+                    }
+                }
+
+                if (result == HTTP_CLIENT_OK)
+                {
+                    if (xio_open(http_data->xio_handle, on_xio_open_complete, http_data, on_bytes_received, http_data, on_io_error, http_data) != 0)
+                    {
+                        /* Codes_SRS_UHTTP_07_044: [ if a failure is encountered on xio_open uhttp_client_open shall return HTTP_CLIENT_OPEN_REQUEST_FAILED. ] */
+                        LogError("opening xio failed");
+                        free(http_data->host_name);
+                        http_data->host_name = NULL;
+                        http_data->on_connect = NULL;
+                        http_data->connect_user_ctx = NULL;
+                        http_data->port_num = 0;
+
+                        result = HTTP_CLIENT_OPEN_FAILED;
+                    }
+                    else
+                    {
+                        /* Codes_SRS_UHTTP_07_008: [If http_client_connect succeeds then it shall return HTTP_CLIENT_OK] */
+                        result = HTTP_CLIENT_OK;
+                    }
                 }
             }
         }
