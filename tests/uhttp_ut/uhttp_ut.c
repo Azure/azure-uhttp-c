@@ -347,6 +347,8 @@ static void my_singlylinkedlist_destroy(SINGLYLINKEDLIST_HANDLE list)
 {
     my_gballoc_free(list);
     my_gballoc_free((void*)g_list_items);
+    g_list_items = NULL;
+    g_list_item_count = 0;
 }
 
 static LIST_ITEM_HANDLE my_singlylinkedlist_get_head_item(SINGLYLINKEDLIST_HANDLE list)
@@ -356,22 +358,27 @@ static LIST_ITEM_HANDLE my_singlylinkedlist_get_head_item(SINGLYLINKEDLIST_HANDL
     if (g_list_item_count > 0)
     {
         listHandle = (LIST_ITEM_HANDLE)g_list_items[0];
-        g_list_item_count--;
     }
     return listHandle;
 }
 
 static LIST_ITEM_HANDLE my_singlylinkedlist_add(SINGLYLINKEDLIST_HANDLE list, const void* item)
 {
-    const void** items = (const void**)my_gballoc_realloc((void*)g_list_items, (g_list_item_count + 1) * sizeof(item));
+    LIST_ITEM_HANDLE result;
     (void)list;
-    if (items != NULL)
+
+    const void** items = (const void**)my_gballoc_realloc((void*)g_list_items, (g_list_item_count + 1) * sizeof(item));
+    if (items == NULL)
+    {
+        result = NULL;
+    }
+    else
     {
         g_list_items = items;
         g_list_items[g_list_item_count++] = item;
     }
     g_list_add_called = true;
-    return (LIST_ITEM_HANDLE)g_list_item_count;
+    return (LIST_ITEM_HANDLE)item;
 }
 
 static const void* my_singlylinkedlist_item_get_value(LIST_ITEM_HANDLE item_handle)
@@ -392,12 +399,23 @@ static int my_singlylinkedlist_remove(SINGLYLINKEDLIST_HANDLE list, LIST_ITEM_HA
 {
     (void)list;
     (void)item;
+    int found = 0;
 
     if (g_list_add_called)
     {
-        if (g_list_item_count > 0)
+        int i;
+        for(i = 0; i < g_list_item_count; i++)
         {
-            g_list_item_count--;
+            if (g_list_items[i] == item)
+            {
+                found = 1;
+                g_list_item_count--;
+                break;
+            }
+        }
+        for (int j = i; j < g_list_item_count; j++)
+        {
+            g_list_items[j] = g_list_items[j+1];
         }
     }
     if (g_list_item_count == 0)
@@ -1230,34 +1248,6 @@ TEST_FUNCTION(uhttp_client_execute_request_with_content_succeed)
     uhttp_client_destroy(clientHandle);
 }
 
-TEST_FUNCTION(uhttp_client_reopen_with_new_hostname_succeed)
-{
-    // arrange
-    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
-    (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
-    HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
-    umock_c_reset_all_calls();
-
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, TEST_HOST_NAME_2));
-    EXPECTED_CALL(xio_open(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(HTTPHeaders_Free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(BUFFER_delete(IGNORED_PTR_ARG));
-    setup_uhttp_client_execute_request_with_content_mocks();
-
-    // act
-    (void)uhttp_client_open(clientHandle, TEST_HOST_NAME_2, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
-    httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
-
-    // assert
-    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult);
-
-    // Cleanup
-    uhttp_client_close(clientHandle, on_closed_callback, NULL);
-    uhttp_client_destroy(clientHandle);
-}
-
 /* Tests_SRS_UHTTP_07_046: [ http_client_dowork shall free resouces queued to send to the http endpoint. ] */
 TEST_FUNCTION(uhttp_client_execute_request_with_content_fails)
 {
@@ -1291,6 +1281,32 @@ TEST_FUNCTION(uhttp_client_execute_request_with_content_fails)
 
     // Cleanup
     umock_c_negative_tests_deinit();
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
+    uhttp_client_destroy(clientHandle);
+}
+
+TEST_FUNCTION(uhttp_client_execute_request_multiple_succeed)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
+    (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+    HTTP_CLIENT_RESULT httpResult1 = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    HTTP_CLIENT_RESULT httpResult2 = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(HTTPHeaders_Free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(BUFFER_delete(IGNORED_PTR_ARG));
+    setup_uhttp_client_execute_request_with_content_mocks();
+
+    HTTP_CLIENT_RESULT httpResult3 = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+
+    // assert
+    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult1);
+    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult2);
+    ASSERT_ARE_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult3);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cleanup
     uhttp_client_close(clientHandle, on_closed_callback, NULL);
     uhttp_client_destroy(clientHandle);
 }

@@ -199,6 +199,9 @@ common/tools/macro_utils_h_generator/macro_utils_h_generator.exe
 **/.vscode/**
 # C/C++ extension for VS Code
 .browse.VC.db*
+GPATH
+GRTAGS
+GTAGS
 
 build_all/windows/nuget.exe
 
