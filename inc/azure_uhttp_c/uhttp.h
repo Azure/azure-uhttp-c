@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "azure_c_shared_utility/httpheaders.h"
+#include "azure_c_shared_utility/tlsio_cryptodev.h"
 #include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/xio.h"
 #include "umock_c/umock_c_prod.h"
@@ -73,6 +74,7 @@ MOCKABLE_FUNCTION(, void, uhttp_client_dowork, HTTP_CLIENT_HANDLE, handle);
 
 MOCKABLE_FUNCTION(, HTTP_CLIENT_RESULT, uhttp_client_set_trace, HTTP_CLIENT_HANDLE, handle, bool, trace_on, bool, trace_data);
 MOCKABLE_FUNCTION(, HTTP_CLIENT_RESULT, uhttp_client_set_X509_cert, HTTP_CLIENT_HANDLE, handle, bool, ecc_type, const char*, certificate, const char*, private_key);
+MOCKABLE_FUNCTION(, HTTP_CLIENT_RESULT, uhttp_client_set_X509_cert_cryptodev, HTTP_CLIENT_HANDLE, handle, bool, ecc_type, const char*, certificate, TLSIO_CRYPTODEV_PKEY*, private_key_cryptodev);
 MOCKABLE_FUNCTION(, HTTP_CLIENT_RESULT, uhttp_client_set_trusted_cert, HTTP_CLIENT_HANDLE, handle, const char*, certificate);
 MOCKABLE_FUNCTION(, const char*, uhttp_client_get_trusted_cert, HTTP_CLIENT_HANDLE, handle);
 MOCKABLE_FUNCTION(, HTTP_CLIENT_RESULT, uhttp_client_set_option, HTTP_CLIENT_HANDLE, handle, const char*, optionName, const void*, value);
