@@ -1128,6 +1128,7 @@ HTTP_CLIENT_RESULT uhttp_client_open(HTTP_CLIENT_HANDLE handle, const char* host
                         http_data->on_connect = NULL;
                         http_data->connect_user_ctx = NULL;
                         http_data->port_num = 0;
+                        http_data->recv_msg.recv_state = state_error;
 
                         result = HTTP_CLIENT_OPEN_FAILED;
                     }
