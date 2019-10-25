@@ -403,7 +403,7 @@ static int my_singlylinkedlist_remove(SINGLYLINKEDLIST_HANDLE list, LIST_ITEM_HA
 
     if (g_list_add_called)
     {
-        int i;
+        size_t i;
         for(i = 0; i < g_list_item_count; i++)
         {
             if (g_list_items[i] == item)
@@ -413,7 +413,7 @@ static int my_singlylinkedlist_remove(SINGLYLINKEDLIST_HANDLE list, LIST_ITEM_HA
                 break;
             }
         }
-        for (int j = i; j < g_list_item_count; j++)
+        for (size_t j = i; j < g_list_item_count; j++)
         {
             g_list_items[j] = g_list_items[j+1];
         }
