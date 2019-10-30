@@ -24,14 +24,14 @@
 #define TIME_MAX_BUFFER     16
 #define HTTP_CRLF_LEN       2
 #define HTTP_END_TOKEN_LEN  4
+#define MAX_CONTENT_LENGTH  16
 
 static const char* HTTP_REQUEST_LINE_FMT = "%s %s HTTP/1.1\r\n";
 static const char* HTTP_HOST = "Host";
+// The following header names MUST be lowercase as they are used for HTTP response header comparison:
 static const char* HTTP_CONTENT_LEN = "content-length";
 static const char* HTTP_TRANSFER_ENCODING = "transfer-encoding";
-//static const char* HTTP_CHUNKED_ENCODING_HDR = "Transfer-Encoding: chunked\r\n";
 static const char* HTTP_CRLF_VALUE = "\r\n";
-//static const char* FORMAT_HEX_CHAR = "0x%02x ";
 
 typedef enum RESPONSE_MESSAGE_STATE_TAG
 {
@@ -104,7 +104,7 @@ static int initialize_received_data(HTTP_CLIENT_HANDLE_DATA* http_data)
 {
     int result = 0;
 
-    // Initialize data if neccessary
+    // Initialize data if necessary
     if (http_data->recv_msg.resp_header == NULL)
     {
         http_data->recv_msg.resp_header = HTTPHeaders_Alloc();
@@ -148,7 +148,7 @@ static int process_status_code_line(const unsigned char* buffer, size_t len, siz
             }
             else
             {
-                initSpace = (const char*)buffer+index+1;
+                initSpace = (const char*)buffer + index + 1;
             }
             spaceFound++;
         }
@@ -157,7 +157,7 @@ static int process_status_code_line(const unsigned char* buffer, size_t len, siz
             *statusLen = (int)atol(status_code);
             if (index < len)
             {
-                *position = index+1;
+                *position = index + 1;
             }
             else
             {
@@ -834,8 +834,9 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
         }
         if (!hostname_found)
         {
-            size_t host_len = strlen(HTTP_HOST)+strlen(hostname)+8+2;
-            char* host_header = malloc(host_len+1);
+            // calculate the size of the host header
+            size_t host_len = strlen(HTTP_HOST) + strlen(hostname) + MAX_CONTENT_LENGTH + 2;
+            char* host_header = malloc(host_len + 1);
             if (host_header == NULL)
             {
                 LogError("Failed allocating host header");
@@ -843,7 +844,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
             }
             else
             {
-                if (snprintf(host_header, host_len+1, "%s: %s:%d\r\n", HTTP_HOST, hostname, port_num) <= 0)
+                if (snprintf(host_header, host_len + 1, "%s: %s:%d\r\n", HTTP_HOST, hostname, port_num) <= 0)
                 {
                     LogError("Failed constructing host header");
                     result = MU_FAILURE;
@@ -860,7 +861,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
         if (result == 0)
         {
             /* Codes_SRS_UHTTP_07_015: [uhttp_client_execute_request shall add the Content-Length to the request if the contentLength is > 0] */
-            size_t fmtLen = strlen(HTTP_CONTENT_LEN)+strlen(HTTP_CRLF_VALUE)+8;
+            size_t fmtLen = strlen(HTTP_CONTENT_LEN) + HTTP_CRLF_LEN + 8;
             char* content = malloc(fmtLen+1);
             if (content == NULL)
             {
@@ -915,7 +916,7 @@ static STRING_HANDLE construct_http_data(HTTP_CLIENT_REQUEST_TYPE request_type, 
     }
     else
     {
-        size_t buffLen = strlen(HTTP_REQUEST_LINE_FMT)+strlen(method)+strlen(relative_path);
+        size_t buffLen = strlen(HTTP_REQUEST_LINE_FMT) + strlen(method) + strlen(relative_path);
         char* request = malloc(buffLen+1);
         if (request == NULL)
         {
@@ -924,7 +925,7 @@ static STRING_HANDLE construct_http_data(HTTP_CLIENT_REQUEST_TYPE request_type, 
         }
         else
         {
-            if (snprintf(request, buffLen+1, HTTP_REQUEST_LINE_FMT, method, relative_path) <= 0)
+            if (snprintf(request, buffLen + 1, HTTP_REQUEST_LINE_FMT, method, relative_path) <= 0)
             {
                 result = NULL;
                 LogError("Failure writing request buffer");
@@ -1031,6 +1032,11 @@ void uhttp_client_destroy(HTTP_CLIENT_HANDLE handle)
     if (handle != NULL)
     {
         /* Codes_SRS_UHTTP_07_005: [uhttp_client_destroy shall free any resource that is allocated in this translation unit] */
+        if(handle->host_name != NULL)
+        {
+            free(handle->host_name);
+            handle->host_name = NULL;
+        }
         singlylinkedlist_destroy(handle->data_list);
         xio_destroy(handle->xio_handle);
         free(handle->certificate);
@@ -1053,70 +1059,84 @@ HTTP_CLIENT_RESULT uhttp_client_open(HTTP_CLIENT_HANDLE handle, const char* host
     {
         HTTP_CLIENT_HANDLE_DATA* http_data = (HTTP_CLIENT_HANDLE_DATA*)handle;
 
-        if (http_data->recv_msg.recv_state != state_initial && http_data->recv_msg.recv_state != state_error && http_data->recv_msg.recv_state != state_closed)
+        if ((http_data->recv_msg.recv_state != state_initial) &&
+            (http_data->recv_msg.recv_state != state_error) &&
+            (http_data->recv_msg.recv_state != state_closed))
         {
             LogError("Unable to open previously open client.");
             result = HTTP_CLIENT_INVALID_STATE;
         }
-        else if (mallocAndStrcpy_s(&http_data->host_name, host) != 0)
-        {
-            LogError("copying hostname has failed");
-            result = HTTP_CLIENT_ERROR;
-        }
-        /* Codes_SRS_UHTTP_07_007: [http_client_connect shall attempt to open the xio_handle. ] */
         else
         {
-            result = HTTP_CLIENT_OK;
-            http_data->recv_msg.recv_state = state_opening;
-            http_data->on_connect = on_connect;
-            http_data->connect_user_ctx = callback_ctx;
-            http_data->port_num = port_num;
-
-            if (http_data->x509_cert != NULL && http_data->x509_pk != NULL)
+            if (http_data->host_name != NULL)
             {
-                if (xio_setoption(http_data->xio_handle, SU_OPTION_X509_CERT, http_data->x509_cert) != 0 || xio_setoption(http_data->xio_handle, SU_OPTION_X509_PRIVATE_KEY, http_data->x509_pk) != 0)
-                {
-                    LogError("Failed setting x509 certificate");
-                    result = HTTP_CLIENT_ERROR;
-                    free(http_data->host_name);
-                    http_data->host_name = NULL;
-                    http_data->on_connect = NULL;
-                    http_data->connect_user_ctx = NULL;
-                    http_data->port_num = 0;
-                }
-            }
-            if (result == HTTP_CLIENT_OK && http_data->certificate != NULL)
-            {
-                if (xio_setoption(http_data->xio_handle, OPTION_TRUSTED_CERT, http_data->certificate) != 0)
-                {
-                    LogError("Failed setting Trusted certificate");
-                    result = HTTP_CLIENT_ERROR;
-                    free(http_data->host_name);
-                    http_data->host_name = NULL;
-                    http_data->on_connect = NULL;
-                    http_data->connect_user_ctx = NULL;
-                    http_data->port_num = 0;
-                }
+                free(http_data->host_name);
+                handle->host_name = NULL;
             }
 
-            if (result == HTTP_CLIENT_OK)
+            if (mallocAndStrcpy_s(&http_data->host_name, host) != 0)
             {
-                if (xio_open(http_data->xio_handle, on_xio_open_complete, http_data, on_bytes_received, http_data, on_io_error, http_data) != 0)
-                {
-                    /* Codes_SRS_UHTTP_07_044: [ if a failure is encountered on xio_open uhttp_client_open shall return HTTP_CLIENT_OPEN_REQUEST_FAILED. ] */
-                    LogError("opening xio failed");
-                    free(http_data->host_name);
-                    http_data->host_name = NULL;
-                    http_data->on_connect = NULL;
-                    http_data->connect_user_ctx = NULL;
-                    http_data->port_num = 0;
+                LogError("copying hostname has failed");
+                result = HTTP_CLIENT_ERROR;
+            }
+            /* Codes_SRS_UHTTP_07_007: [http_client_connect shall attempt to open the xio_handle. ] */
+            else
+            {
+                result = HTTP_CLIENT_OK;
+                http_data->recv_msg.recv_state = state_opening;
+                http_data->on_connect = on_connect;
+                http_data->connect_user_ctx = callback_ctx;
+                http_data->port_num = port_num;
 
-                    result = HTTP_CLIENT_OPEN_FAILED;
-                }
-                else
+                if ((http_data->x509_cert != NULL) && (http_data->x509_pk != NULL))
                 {
-                    /* Codes_SRS_UHTTP_07_008: [If http_client_connect succeeds then it shall return HTTP_CLIENT_OK] */
-                    result = HTTP_CLIENT_OK;
+                    if ((xio_setoption(http_data->xio_handle, SU_OPTION_X509_CERT, http_data->x509_cert) != 0) ||
+                        (xio_setoption(http_data->xio_handle, SU_OPTION_X509_PRIVATE_KEY, http_data->x509_pk) != 0))
+                    {
+                        LogError("Failed setting x509 certificate");
+                        result = HTTP_CLIENT_ERROR;
+                        free(http_data->host_name);
+                        http_data->host_name = NULL;
+                        http_data->on_connect = NULL;
+                        http_data->connect_user_ctx = NULL;
+                        http_data->port_num = 0;
+                    }
+                }
+
+                if ((result == HTTP_CLIENT_OK) && (http_data->certificate != NULL))
+                {
+                    if (xio_setoption(http_data->xio_handle, OPTION_TRUSTED_CERT, http_data->certificate) != 0)
+                    {
+                        LogError("Failed setting Trusted certificate");
+                        result = HTTP_CLIENT_ERROR;
+                        free(http_data->host_name);
+                        http_data->host_name = NULL;
+                        http_data->on_connect = NULL;
+                        http_data->connect_user_ctx = NULL;
+                        http_data->port_num = 0;
+                    }
+                }
+
+                if (result == HTTP_CLIENT_OK)
+                {
+                    if (xio_open(http_data->xio_handle, on_xio_open_complete, http_data, on_bytes_received, http_data, on_io_error, http_data) != 0)
+                    {
+                        /* Codes_SRS_UHTTP_07_044: [ if a failure is encountered on xio_open uhttp_client_open shall return HTTP_CLIENT_OPEN_REQUEST_FAILED. ] */
+                        LogError("opening xio failed");
+                        free(http_data->host_name);
+                        http_data->host_name = NULL;
+                        http_data->on_connect = NULL;
+                        http_data->connect_user_ctx = NULL;
+                        http_data->port_num = 0;
+                        http_data->recv_msg.recv_state = state_error;
+
+                        result = HTTP_CLIENT_OPEN_FAILED;
+                    }
+                    else
+                    {
+                        /* Codes_SRS_UHTTP_07_008: [If http_client_connect succeeds then it shall return HTTP_CLIENT_OK] */
+                        result = HTTP_CLIENT_OK;
+                    }
                 }
             }
         }
