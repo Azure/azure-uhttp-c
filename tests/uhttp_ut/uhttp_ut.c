@@ -734,7 +734,7 @@ TEST_FUNCTION(uhttp_client_create_fails)
         HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, NULL);
 
         // assert
-        ASSERT_IS_NULL(clientHandle, "uhttp_client_create failure in test %lu/%lu", index, count);
+        ASSERT_IS_NULL(clientHandle, "uhttp_client_create failure in test %zu/%zu", index, count);
     }
 
     // Cleanup
@@ -989,7 +989,7 @@ TEST_FUNCTION(uhttp_client_open_fail)
         HTTP_CLIENT_RESULT httpResult = uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
 
         //assert
-        ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_open failure in test %lu/%lu", index, count);
+        ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_open failure in test %zu/%zu", index, count);
     }
 
     //cleanup
@@ -1163,7 +1163,7 @@ TEST_FUNCTION(uhttp_client_execute_request_no_content_fails)
             HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, NULL, 0, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
 
             // assert
-            ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_execute_request failure in test %lu/%lu", index, count);
+            ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_execute_request failure in test %zu/%zu", index, count);
         }
     }
 
@@ -1275,7 +1275,7 @@ TEST_FUNCTION(uhttp_client_execute_request_with_content_fails)
             HTTP_CLIENT_RESULT httpResult = uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_POST, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
 
             // assert
-            ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_execute_request failure in test %lu/%lu", index, count);
+            ASSERT_ARE_NOT_EQUAL(HTTP_CLIENT_RESULT, HTTP_CLIENT_OK, httpResult, "uhttp_client_execute_request failure in test %zu/%zu", index, count);
         }
     }
 
