@@ -191,7 +191,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
             {
                 LogError("Invalid header name with zero length.");
                 result = MU_FAILURE;
-                continueProcessing = false;                
+                continueProcessing = false;
             }
             else
             {
@@ -219,7 +219,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
 
                     targetPos = buffer+index+1;
                     crlfEncounted = false;
-                }   
+                }
             }
         }
         else if (buffer[index] == '\r')
