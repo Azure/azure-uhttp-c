@@ -185,7 +185,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
         if (buffer[index] == ':' && !colonEncountered)
         {
             colonEncountered = true;
-            size_t keyLen = (&buffer[index])-targetPos;
+            size_t keyLen = (&buffer[index]) - targetPos;
 
             if (keyLen == 0)
             {
