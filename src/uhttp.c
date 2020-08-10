@@ -200,7 +200,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                     free(headerKey);
                     headerKey = NULL;
                 }
-                headerKey = (char*)malloc(keyLen+1);
+                headerKey = (char*)malloc(keyLen + 1);
                 if (headerKey == NULL)
                 {
                     result = MU_FAILURE;
