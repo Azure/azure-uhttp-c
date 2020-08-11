@@ -135,7 +135,7 @@ static int process_status_code_line(const unsigned char* buffer, size_t len, siz
     size_t index;
     int spaceFound = 0;
     const char* initSpace = NULL;
-    char status_code[4];
+    char status_code[4] = { 0 };
 
     for (index = 0; index < len; index++)
     {
