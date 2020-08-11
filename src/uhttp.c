@@ -185,41 +185,32 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
         if (buffer[index] == ':' && !colonEncountered)
         {
             colonEncountered = true;
-            size_t keyLen = (&buffer[index]) - targetPos;
+            size_t keyLen = (&buffer[index])-targetPos;
 
-            if (keyLen == 0)
+            if (headerKey != NULL)
             {
-                LogError("Invalid header name with zero length.");
+                free(headerKey);
+                headerKey = NULL;
+            }
+            headerKey = (char*)malloc(keyLen+1);
+            if (headerKey == NULL)
+            {
                 result = MU_FAILURE;
                 continueProcessing = false;
             }
             else
             {
-                if (headerKey != NULL)
-                {
-                    free(headerKey);
-                    headerKey = NULL;
-                }
-                headerKey = (char*)malloc(keyLen + 1);
-                if (headerKey == NULL)
-                {
-                    result = MU_FAILURE;
-                    continueProcessing = false;
-                }
-                else
-                {
-                    memcpy(headerKey, targetPos, keyLen);
-                    headerKey[keyLen] = '\0';
+                memcpy(headerKey, targetPos, keyLen);
+                headerKey[keyLen] = '\0';
 
-                    // Convert to lower case
-                    for (size_t inner = 0; inner < keyLen; inner++)
-                    {
-                        headerKey[inner] = (char)tolower(headerKey[inner]);
-                    }
-
-                    targetPos = buffer+index+1;
-                    crlfEncounted = false;
+                // Convert to lower case
+                for (size_t inner = 0; inner < keyLen; inner++)
+                {
+                    headerKey[inner] = (char)tolower(headerKey[inner]);
                 }
+
+                targetPos = buffer+index+1;
+                crlfEncounted = false;
             }
         }
         else if (buffer[index] == '\r')
