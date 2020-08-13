@@ -5,7 +5,11 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(uhttp)
 
+include(GNUInstallDirs)
+
 set(UHTTP_VERSION 1.0.1)
+string(REPLACE "." ";" VERSION_LIST ${UHTTP_VERSION})
+list(GET VERSION_LIST 0 UHTTP_VERSION_MAJOR)
 
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
@@ -13,13 +17,16 @@ option(skip_samples "set skip_samples to ON to skip building samples (default is
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(use_custom_heap "use externally defined heap functions instead of the malloc family" OFF)
 
+add_library(uhttp "")
+
 if(${use_custom_heap})
-    add_definitions(-DGB_USE_CUSTOM_HEAP)
+    target_compile_definitions(uhttp PRIVATE "GB_USE_CUSTOM_HEAP")
 endif()
 
 if(${no_logging})
-    add_definitions(-DNO_LOGGING)
+    target_compile_definitions(uhttp PRIVATE "NO_LOGGING")
 endif()
+
 
 #do not add or build any tests of the dependencies
 set(original_run_e2e_tests ${run_e2e_tests})
@@ -79,16 +86,14 @@ set(run_unittests ${original_run_unittests})
 set(skip_samples ${original_skip_samples})
 
 if(${use_openssl})
-    add_definitions(-DUSE_OPENSSL)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_OPENSSL")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_OPENSSL")
+    target_compile_definitions(uhttp PRIVATE "USE_OPENSSL")
 endif()
 
 #Use solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if(${memory_trace})
-    add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
+    target_compile_definitions(uhttp PRIVATE "GB_MEASURE_MEMORY_FOR_THIS" "GB_DEBUG_ALLOC")
 endif()
 
 IF((WIN32) AND (NOT(MINGW)))
@@ -97,9 +102,8 @@ IF((WIN32) AND (NOT(MINGW)))
     # Make warning as error
     add_definitions(/WX)
 ELSE()
-    # Make warning as error
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+  # Make warning as error
+    target_compile_options(uhttp PRIVATE "-Werror")
 ENDIF()
 
 if(MSVC)
@@ -111,20 +115,17 @@ set(UHTTP_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is wha
 set(use_cppunittest ON)
 set_platform_files(${SHARED_UTIL_FOLDER})
 
-set(uhttp_c_files
-    ./src/uhttp.c
-)
-
-set(uhttp_h_files
-    ./inc/azure_uhttp_c/uhttp.h
-)
+target_sources(uhttp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/uhttp.c)
 
 include_directories(./inc)
 include_directories(${SHARED_UTIL_INC_FOLDER} ${MACRO_UTILS_INC_FOLDER} ${UMOCK_C_INC_FOLDER})
 
 include("configs/azure_uhttpFunctions.cmake")
 
-add_library(uhttp ${uhttp_c_files} ${uhttp_h_files})
+set_target_properties(uhttp PROPERTIES
+  VERSION ${UHTTP_VERSION}
+  SOVERSION ${UHTTP_VERSION_MAJOR}
+  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/inc/azure_uhttp_c/uhttp.h)
 setTargetBuildProperties(uhttp)
 target_link_libraries(uhttp aziotsharedutil)
 
@@ -138,7 +139,7 @@ if (NOT ${skip_samples})
 endif()
 
 # Install uhttp
-set(package_location "cmake")
+set(package_location "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR "lib")
@@ -147,10 +148,10 @@ endif()
 install(TARGETS uhttp EXPORT uhttpTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_uhttp_c
 )
-install(FILES ${uhttp_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_uhttp_c)
 
 include(CMakePackageConfigHelpers)
 
@@ -160,11 +161,26 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
+configure_file(configs/uhttpConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/uhttp/uhttpConfig.cmake"
+  COPYONLY
+  )
+
 install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
-    DESTINATION
-        ${package_location}
-)
+  FILES
+  configs/uhttpConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION
+  ${package_location}
+  COMPONENT
+   Devel
+  )
+
+install(EXPORT uhttpTargets
+  FILE
+    uhttpTargets.cmake
+  DESTINATION
+    ${package_location}
+    )
 
 compileTargetAsC99(uhttp)
