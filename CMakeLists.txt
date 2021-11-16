@@ -125,6 +125,11 @@ include_directories(${SHARED_UTIL_INC_FOLDER} ${MACRO_UTILS_INC_FOLDER} ${UMOCK_
 include("configs/azure_uhttpFunctions.cmake")
 
 add_library(uhttp ${uhttp_c_files} ${uhttp_h_files})
+target_include_directories(uhttp
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/azureiot>
+)
 setTargetBuildProperties(uhttp)
 target_link_libraries(uhttp aziotsharedutil)
 
@@ -147,7 +152,7 @@ endif()
 install(TARGETS uhttp EXPORT uhttpTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
 )
 install(FILES ${uhttp_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_uhttp_c)
