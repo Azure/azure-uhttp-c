@@ -142,8 +142,11 @@ if (NOT ${skip_samples})
     add_subdirectory(samples)
 endif()
 
-# Install uhttp
-set(package_location "cmake")
+# Set CMAKE_INSTALL_LIBDIR if not defined
+include(GNUInstallDirs)
+
+# Install umqtt
+set(package_location "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR "lib")
@@ -165,11 +168,23 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
+configure_file("configs/${PROJECT_NAME}Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
+    COPYONLY
+)
+
+install(EXPORT uhttpTargets
+    FILE
+        "${PROJECT_NAME}Targets.cmake"
     DESTINATION
         ${package_location}
 )
 
+install(
+    FILES
+        "configs/${PROJECT_NAME}Config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION
+        ${package_location}
+)
 compileTargetAsC99(uhttp)
