@@ -337,7 +337,6 @@ jobs:
   displayName: Windows x64
   pool:
     name: 'sdk-c--win-vs2017'
-  displayName: 'windowsx64'
   steps:
   - script: |
      if exist jenkins\windows_c.cmd (
