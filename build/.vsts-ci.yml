@@ -41,6 +41,7 @@ jobs:
       ./../../node_modules/.bin/check_submodules . master
     displayName: 'build'
 - job: windowsx86
+  displayName: Windows x86
   pool:
     name: 'sdk-c--win-vs2017'
   steps:
@@ -333,6 +334,7 @@ jobs:
     displayName: 'cleanup'
     condition: always()
 - job: windowsx64
+  displayName: Windows x64
   pool:
     name: 'sdk-c--win-vs2017'
   displayName: 'windowsx64'
@@ -364,6 +366,7 @@ jobs:
     displayName: 'cleanup'
     condition: always()
 - job: xcodenative
+  displayName: Xcode Native
   pool:
     name: OSX
   steps:
