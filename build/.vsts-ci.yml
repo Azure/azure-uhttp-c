@@ -18,6 +18,9 @@ resources:
   - container: raspberrypi-c-buster
     endpoint: csdk-containers
     image: csdkcontainerregistry.azurecr.io/raspberrypi-c-buster:brown
+  - container: linux-c-ubuntu-wolfssl
+    endpoint: csdk-containers
+    image: csdkcontainerregistry.azurecr.io/linux-c-ubuntu-wolfssl:latest
 jobs:
 - job: checksubmodule
   displayName: Check Submodules
