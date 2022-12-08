@@ -310,19 +310,59 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
 static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_line)
 {
     int result;
+
     if (xio_send(http_data->xio_handle, text_line, strlen(text_line), send_complete_callback, NULL) != 0)
     {
         LogError("Failure calling xio_send.");
         result = MU_FAILURE;
     }
+
     else
     {
         result = 0;
+
         if (http_data->trace_on)
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%s", text_line);
+            char* authStart = strstr(text_line, "Authorization:");
+            char* proxyAuthStart = strstr(text_line, "Proxy-Authorization");
+
+            if (authStart == NULL && proxyAuthStart == NULL)
+            {
+                LOG(AZ_LOG_TRACE, LOG_LINE, "%s", text_line);
+            }
+
+            else if (authStart != NULL && proxyAuthStart == NULL)
+            {
+                char* authEol = strstr(authStart, "\x0D\x0A");
+
+                if (authEol != NULL)
+                {                                                                 
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ************** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (authEol - text_line)), authEol);
+                }
+            }
+
+            else if (proxyAuthStart != NULL && authStart == NULL)
+            {
+                char* proxyAuthEol = strstr(proxyAuthStart, "\x0D\x0A");
+
+                if (proxyAuthEol != NULL)
+                {
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ************** %.*s", (int)(proxyAuthStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
+                }
+            }
+
+            else if (proxyAuthStart != NULL && authStart != NULL)
+            {
+                char* proxyAuthEol = strstr(proxyAuthStart, "\x0D\x0A");
+
+                if (proxyAuthEol != NULL)
+                {
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s **************\n************** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
+                }
+            }
         }
     }
+
     return result;
 }
 
