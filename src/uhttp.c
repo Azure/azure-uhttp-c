@@ -322,7 +322,7 @@ static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, static const char
         if (http_data->trace_on)
         {
             char* authStart = strstr(text_line, "Authorization:");
-            char* proxyAuthStart = strstr(text_line, "Proxy-Authorization");
+            char* proxyAuthStart = strstr(text_line, "Proxy-Authorization:");
             if (authStart == NULL && proxyAuthStart == NULL)
             {
                 LOG(AZ_LOG_TRACE, LOG_LINE, "%s", text_line);
