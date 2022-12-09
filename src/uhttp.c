@@ -34,7 +34,7 @@ static const char* HTTP_TRANSFER_ENCODING = "transfer-encoding";
 static const char* HTTP_CRLF_VALUE = "\r\n";
 static const char* HEADER_ENDING = "\x0A";
 static const char* AUTH_HEADER = "Authorization:";
-static const char* AUTH_HEADER_TWO = "\nAuthorization";
+static const char* AUTH_HEADER_TWO = "\nAuthorization:";
 static const char* PROXY_AUTH_HEADER = "Proxy-Authorization:";
 
 typedef enum RESPONSE_MESSAGE_STATE_TAG
