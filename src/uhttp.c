@@ -34,6 +34,7 @@ static const char* HTTP_TRANSFER_ENCODING = "transfer-encoding";
 static const char* HTTP_CRLF_VALUE = "\r\n";
 static const char* HEADER_ENDING = "\x0A";
 static const char* AUTH_HEADER = "Authorization:";
+static const char* AUTH_HEADER_TWO = "\nAuthorization";
 static const char* PROXY_AUTH_HEADER = "Proxy-Authorization:";
 
 typedef enum RESPONSE_MESSAGE_STATE_TAG
@@ -326,13 +327,14 @@ static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_
         {
             char* authStart = strstr(text_line, AUTH_HEADER);
             char* proxyAuthStart = strstr(text_line, PROXY_AUTH_HEADER);
+            char* authEol = strstr(authStart, HEADER_ENDING);
+            char* proxyAuthEol = strstr(proxyAuthStart, HEADER_ENDING);
             if (authStart == NULL && proxyAuthStart == NULL)
             {
                 LOG(AZ_LOG_TRACE, LOG_LINE, "%s", text_line);
             }
             else if (authStart != NULL && proxyAuthStart == NULL)
             {
-                char* authEol = strstr(authStart, HEADER_ENDING);
                 if (authEol != NULL)
                 {                                                                 
                     LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ************** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (authEol - text_line)), authEol);
@@ -340,18 +342,29 @@ static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_
             }
             else if (proxyAuthStart != NULL && authStart == NULL)
             {
-                char* proxyAuthEol = strstr(proxyAuthStart, HEADER_ENDING);
                 if (proxyAuthEol != NULL)
                 {
                     LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ************** %.*s", (int)(proxyAuthStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
                 }
             }
-            else if (proxyAuthStart != NULL && authStart != NULL)
+            else
             {
-                char* proxyAuthEol = strstr(proxyAuthStart, HEADER_ENDING);
-                if (proxyAuthEol != NULL)
+                int authPos = authStart - text_line;
+                int proxyAuthPos = proxyAuthStart - text_line;
+                if(authPos < proxyAuthPos)
                 {
-                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s **************\n************** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ***** %.*s ***** %.*s", (int)(authStart - text_line), text_line, (int)(proxyAuthStart - authEol), authEol,
+(int)(proxyAuthEol - text_line),
+proxyAuthEol);
+                }
+                else
+                {
+                    char* secondAuthStart = strstr(text_line, AUTH_HEADER_TWO);
+                    secondAuthStart++;
+                    char* authEolTwo = strstr(secondAuthStart, AUTH_HEADER_TWO);
+
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ******* %.*s ******* %.*s", (int)(proxyAuthStart - text_line), text_line, (int)(secondAuthStart - proxyAuthEol), proxyAuthEol,(int)(authEolTwo -
+text_line),authEolTwo);
                 }
             }
         }
