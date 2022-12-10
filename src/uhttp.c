@@ -353,7 +353,7 @@ static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_
                 int proxyAuthPos = proxyAuthStart - text_line;
                 if(authPos < proxyAuthPos)
                 {
-                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ***** %.*s ***** %.*s", (int)(authStart - text_line), text_line, (int)(proxyAuthStart - authEol), authEol,
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ************** %.*s ************** %.*s", (int)(authStart - text_line), text_line, (int)(proxyAuthStart - authEol), authEol,
 (int)(proxyAuthEol - text_line),
 proxyAuthEol);
                 }
@@ -363,7 +363,7 @@ proxyAuthEol);
                     secondAuthStart++;
                     char* authEolTwo = strstr(secondAuthStart, AUTH_HEADER_TWO);
 
-                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ******* %.*s ******* %.*s", (int)(proxyAuthStart - text_line), text_line, (int)(secondAuthStart - proxyAuthEol), proxyAuthEol,(int)(authEolTwo -
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s ************** %.*s ************** %.*s", (int)(proxyAuthStart - text_line), text_line, (int)(secondAuthStart - proxyAuthEol), proxyAuthEol,(int)(authEolTwo -
 text_line),authEolTwo);
                 }
             }
