@@ -377,7 +377,7 @@ static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_
         result = 0;
         if (http_data->trace_on)
         {
-            log_data_line;
+            log_data_line(http_data, text_line);;
         }
     }
     return result;
