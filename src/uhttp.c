@@ -335,14 +335,14 @@ static void log_data_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_l
     {
         if (authEol != NULL)
         {                                                                 
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Authorization: ************** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (authEol - text_line)), authEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Authorization: *** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (authEol - text_line)), authEol);
         }
     }
     else if (proxyAuthStart != NULL && authStart == NULL)
     {
         if (proxyAuthEol != NULL)
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Proxy-Authorization: ************** %.*s", (int)(proxyAuthStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Proxy-Authorization: *** %.*s", (int)(proxyAuthStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
         }
     }
     else
@@ -351,14 +351,11 @@ static void log_data_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_l
         int proxyAuthPos = proxyAuthStart - text_line;
         if(authPos < proxyAuthPos)
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Authorization: ************** %.*s Proxy-Authorization: ************** %.*s", (int)(authStart - text_line), text_line, (int)(proxyAuthStart - authEol), authEol,
-(int)(proxyAuthEol - text_line),
-proxyAuthEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Authorization: *** %.*s Proxy-Authorization: *** %.*s", (int)(authStart - text_line), text_line, (int)(proxyAuthStart - authEol), authEol, (int)(proxyAuthEol - text_line), proxyAuthEol);
         }
         else
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Proxy-Authorization: ************** %.*s Authorization: ************** %.*s", (int)(proxyAuthStart - text_line), text_line, (int)(authStart - proxyAuthEol), proxyAuthEol,(int)(authEol -
-text_line),authEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Proxy-Authorization: *** %.*s Authorization: *** %.*s", (int)(proxyAuthStart - text_line), text_line, (int)(authStart - proxyAuthEol), proxyAuthEol, (int)(authEol - text_line), authEol);
         }
     }
 }
