@@ -344,9 +344,7 @@ static void log_data_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_l
     }
     else
     {
-        long int authPos = authStart - text_line;
-        long int proxyAuthPos = proxyAuthStart - text_line;
-        if(authPos < proxyAuthPos)
+        if(authStart < proxyAuthStart)
         {
             LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nAuthorization: *** %.*s \r\nProxy-Authorization: *** %.*s", (int)(authStart - text_line), text_line, (int)(proxyAuthStart - authEol), authEol, (int)(proxyAuthEol - text_line), proxyAuthEol);
         }
