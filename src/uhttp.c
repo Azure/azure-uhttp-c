@@ -32,9 +32,8 @@ static const char* HTTP_HOST = "Host";
 static const char* HTTP_CONTENT_LEN = "content-length";
 static const char* HTTP_TRANSFER_ENCODING = "transfer-encoding";
 static const char* HTTP_CRLF_VALUE = "\r\n";
-static const char* HEADER_ENDING = "\x0A";
-static const char* AUTH_HEADER = "Authorization:";
-static const char* PROXY_AUTH_HEADER = "Proxy-Authorization:";
+static const char* AUTH_HEADER = "\r\nAuthorization:";
+static const char* PROXY_AUTH_HEADER = "\r\nProxy-Authorization:";
 
 typedef enum RESPONSE_MESSAGE_STATE_TAG
 {
@@ -319,13 +318,11 @@ static void log_data_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_l
 
     if (authStart != NULL)
     {
-        authEol = strstr(authStart, HEADER_ENDING);
+        authEol = strstr((authStart + 1), HTTP_CRLF_VALUE);
     }
     if (proxyAuthStart != NULL)
     {
-        proxyAuthEol = strstr(proxyAuthStart, HEADER_ENDING);
-        authStart = strstr(proxyAuthEol, AUTH_HEADER);
-        authEol = strstr(authStart, HEADER_ENDING);
+        proxyAuthEol = strstr((proxyAuthStart + 1), HTTP_CRLF_VALUE);
     }
     if (authStart == NULL && proxyAuthStart == NULL)
     {
@@ -335,14 +332,14 @@ static void log_data_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_l
     {
         if (authEol != NULL)
         {                                                                 
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Authorization: *** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (authEol - text_line)), authEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nAuthorization: *** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (authEol - text_line)), authEol);
         }
     }
     else if (proxyAuthStart != NULL && authStart == NULL)
     {
         if (proxyAuthEol != NULL)
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Proxy-Authorization: *** %.*s", (int)(proxyAuthStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nProxy-Authorization: *** %.*s", (int)(proxyAuthStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
         }
     }
     else
@@ -351,11 +348,11 @@ static void log_data_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_l
         int proxyAuthPos = proxyAuthStart - text_line;
         if(authPos < proxyAuthPos)
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Authorization: *** %.*s Proxy-Authorization: *** %.*s", (int)(authStart - text_line), text_line, (int)(proxyAuthStart - authEol), authEol, (int)(proxyAuthEol - text_line), proxyAuthEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nAuthorization: *** %.*s \r\nProxy-Authorization: *** %.*s", (int)(authStart - text_line), text_line, (int)(proxyAuthStart - authEol), authEol, (int)(proxyAuthEol - text_line), proxyAuthEol);
         }
         else
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s Proxy-Authorization: *** %.*s Authorization: *** %.*s", (int)(proxyAuthStart - text_line), text_line, (int)(authStart - proxyAuthEol), proxyAuthEol, (int)(authEol - text_line), authEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nProxy-Authorization: *** %.*s \r\nAuthorization: *** %.*s", (int)(proxyAuthStart - text_line), text_line, (int)(authStart - proxyAuthEol), proxyAuthEol, (int)(authEol - text_line), authEol);
         }
     }
 }
