@@ -309,7 +309,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
     return result;
 }
 
-static void log_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_line)
+static void log_text_line(const char* text_line)
 {
     char* authStart = strstr(text_line, AUTH_HEADER);
     char* proxyAuthStart = strstr(text_line, PROXY_AUTH_HEADER);
