@@ -328,14 +328,14 @@ static void log_text_line(const char* text_line)
     {
         LOG(AZ_LOG_TRACE, LOG_LINE, "%s", text_line);
     }
-    else if (authStart != NULL && proxyAuthStart == NULL)
+    else if (proxyAuthStart == NULL)
     {
         if (authEol != NULL)
         {                                                                 
             LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nAuthorization: *** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (authEol - text_line)), authEol);
         }
     }
-    else if (proxyAuthStart != NULL && authStart == NULL)
+    else if (authStart == NULL)
     {
         if (proxyAuthEol != NULL)
         {
