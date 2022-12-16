@@ -320,10 +320,12 @@ static void log_text_line(const char* text_line)
     {
         authEol = strstr((authStart + 1), HTTP_CRLF_VALUE);
     }
+
     if (proxyAuthStart != NULL)
     {
         proxyAuthEol = strstr((proxyAuthStart + 1), HTTP_CRLF_VALUE);
     }
+
     if (authStart == NULL && proxyAuthStart == NULL)
     {
         LOG(AZ_LOG_TRACE, LOG_LINE, "%s", text_line);
