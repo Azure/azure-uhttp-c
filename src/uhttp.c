@@ -32,8 +32,8 @@ static const char* HTTP_HOST = "Host";
 static const char* HTTP_CONTENT_LEN = "content-length";
 static const char* HTTP_TRANSFER_ENCODING = "transfer-encoding";
 static const char* HTTP_CRLF_VALUE = "\r\n";
-static const char* AUTH_HEADER = "\r\nAuthorization:";
-static const char* PROXY_AUTH_HEADER = "\r\nProxy-Authorization:";
+static const char* HTTP_AUTH_HEADER = "\r\nAuthorization:";
+static const char* HTTP_PROXY_AUTH_HEADER = "\r\nProxy-Authorization:";
 
 typedef enum RESPONSE_MESSAGE_STATE_TAG
 {
@@ -311,8 +311,8 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
 
 static void log_text_line(const char* text_line)
 {
-    char* authStart = strstr(text_line, AUTH_HEADER);
-    char* proxyAuthStart = strstr(text_line, PROXY_AUTH_HEADER);
+    char* authStart = strstr(text_line, HTTP_AUTH_HEADER);
+    char* proxyAuthStart = strstr(text_line, HTTP_PROXY_AUTH_HEADER);
     char* authEol = NULL;
     char* proxyAuthEol = NULL;
 
