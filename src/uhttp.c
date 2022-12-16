@@ -334,7 +334,9 @@ static void log_text_line(const char* text_line)
     {
         if (authEol != NULL)
         {                                                                 
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nAuthorization: *** %.*s", (int)(authStart  - text_line), text_line, (int)(strlen(text_line) - (authEol - text_line)), authEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nAuthorization: *** %.*s",
+                                                                 (int)(authStart  - text_line), text_line,
+                                                                 (int)(strlen(text_line) - (authEol - text_line)), authEol);
         }
     }
     else if (authStart == NULL)
