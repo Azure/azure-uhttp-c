@@ -343,7 +343,9 @@ static void log_text_line(const char* text_line)
     {
         if (proxyAuthEol != NULL)
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nProxy-Authorization: *** %.*s", (int)(proxyAuthStart  - text_line), text_line, (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nProxy-Authorization: *** %.*s",
+                                                     (int)(proxyAuthStart  - text_line), text_line,
+                                                     (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
         }
     }
     else
