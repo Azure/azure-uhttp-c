@@ -32,6 +32,8 @@ static const char* HTTP_HOST = "Host";
 static const char* HTTP_CONTENT_LEN = "content-length";
 static const char* HTTP_TRANSFER_ENCODING = "transfer-encoding";
 static const char* HTTP_CRLF_VALUE = "\r\n";
+static const char* HTTP_AUTH_HEADER = "\r\nAuthorization:";
+static const char* HTTP_PROXY_AUTH_HEADER = "\r\nProxy-Authorization:";
 
 typedef enum RESPONSE_MESSAGE_STATE_TAG
 {
@@ -307,9 +309,68 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
     return result;
 }
 
+static void log_text_line(const char* text_line)
+{
+    char* authStart = strstr(text_line, HTTP_AUTH_HEADER);
+    char* proxyAuthStart = strstr(text_line, HTTP_PROXY_AUTH_HEADER);
+    char* authEol = NULL;
+    char* proxyAuthEol = NULL;
+
+    if (authStart != NULL)
+    {
+        authEol = strstr((authStart + 1), HTTP_CRLF_VALUE);
+    }
+
+    if (proxyAuthStart != NULL)
+    {
+        proxyAuthEol = strstr((proxyAuthStart + 1), HTTP_CRLF_VALUE);
+    }
+
+    if (authStart == NULL && proxyAuthStart == NULL)
+    {
+        LOG(AZ_LOG_TRACE, LOG_LINE, "%s", text_line);
+    }
+    else if (proxyAuthStart == NULL)
+    {
+        if (authEol != NULL)
+        {                                                                 
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nAuthorization: *** %.*s",
+                                                                 (int)(authStart  - text_line), text_line,
+                                                                 (int)(strlen(text_line) - (authEol - text_line)), authEol);
+        }
+    }
+    else if (authStart == NULL)
+    {
+        if (proxyAuthEol != NULL)
+        {
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nProxy-Authorization: *** %.*s",
+                                                     (int)(proxyAuthStart  - text_line), text_line,
+                                                     (int)(strlen(text_line) - (proxyAuthEol - text_line)), proxyAuthEol);
+        }
+    }
+    else
+    {
+        if(authStart < proxyAuthStart)
+        {
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nAuthorization: *** %.*s \r\nProxy-Authorization: *** %.*s",
+                               (int)(authStart - text_line), text_line,
+                               (int)(proxyAuthStart - authEol), authEol,
+                               (int)(proxyAuthEol - text_line), proxyAuthEol);
+        }
+        else
+        {
+            LOG(AZ_LOG_TRACE, LOG_LINE, "%.*s \r\nProxy-Authorization: *** %.*s \r\nAuthorization: *** %.*s",
+            (int)(proxyAuthStart - text_line), text_line,
+            (int)(authStart - proxyAuthEol), proxyAuthEol,
+            (int)(authEol - text_line), authEol);
+        }
+    }
+}
+
 static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_line)
 {
     int result;
+
     if (xio_send(http_data->xio_handle, text_line, strlen(text_line), send_complete_callback, NULL) != 0)
     {
         LogError("Failure calling xio_send.");
@@ -320,7 +381,7 @@ static int write_text_line(HTTP_CLIENT_HANDLE_DATA* http_data, const char* text_
         result = 0;
         if (http_data->trace_on)
         {
-            LOG(AZ_LOG_TRACE, LOG_LINE, "%s", text_line);
+            log_text_line(text_line);
         }
     }
     return result;
