@@ -12,13 +12,13 @@ if(${use_openssl})
 endif()
 
 set(${theseTestsName}_test_files
-    ${theseTestsName}.c
+    ${theseTestsName}.cpp
 )
 
 include_directories(${SHARED_UTIL_REAL_TEST_FOLDER})
 
 set(${theseTestsName}_cpp_files
-    ../../src/uhttp.c
+    ../../src/uhttp.cpp
     ${SHARED_UTIL_REAL_TEST_FOLDER}/real_buffer.c
 )
 
