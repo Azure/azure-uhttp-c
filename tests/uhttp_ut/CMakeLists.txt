@@ -18,7 +18,7 @@ set(${theseTestsName}_test_files
 include_directories(${SHARED_UTIL_REAL_TEST_FOLDER})
 
 set(${theseTestsName}_cpp_files
-    ../../src/uhttp.cpp
+    ../../src/uhttp.c
     ${SHARED_UTIL_REAL_TEST_FOLDER}/real_buffer.c
 )
 
