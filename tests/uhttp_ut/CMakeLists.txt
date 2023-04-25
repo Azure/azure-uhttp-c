@@ -4,6 +4,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(theseTestsName uhttp_ut)
+generate_cppunittest_wrapper(${theseTestsName})
 
 if(${use_openssl})
     add_definitions(-DUSE_OPENSSL)
@@ -11,13 +12,9 @@ if(${use_openssl})
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_OPENSSL")
 endif()
 
-set(${theseTestsName}_test_files
-    ${theseTestsName}.cpp
-)
-
 include_directories(${SHARED_UTIL_REAL_TEST_FOLDER})
 
-set(${theseTestsName}_cpp_files
+set(${theseTestsName}_c_files
     ../../src/uhttp.c
     ${SHARED_UTIL_REAL_TEST_FOLDER}/real_buffer.c
 )

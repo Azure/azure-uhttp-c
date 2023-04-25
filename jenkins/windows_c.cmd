@@ -38,7 +38,7 @@ rem no error checking
 pushd %build-root%\cmake\%CMAKE_DIR%
 
 echo ***checking msbuild***
-where /q msbuild
+where msbuild
 
 if %build-platform% == x64 (
     echo ***Running CMAKE for Win64***
