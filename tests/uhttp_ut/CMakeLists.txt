@@ -3,10 +3,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-compileAsC99()
-
 set(theseTestsName uhttp_ut)
-generate_cppunittest_wrapper(${theseTestsName})
 
 if(${use_openssl})
     add_definitions(-DUSE_OPENSSL)
@@ -26,4 +23,4 @@ set(${theseTestsName}_h_files
 
 build_c_test_artifacts(${theseTestsName} ON "tests/uhttp_tests")
 
-#compile_c_test_artifacts_as(${theseTestsName} C99)
+compile_c_test_artifacts_as(${theseTestsName} C99)
