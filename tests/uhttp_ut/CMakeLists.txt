@@ -11,6 +11,10 @@ if(${use_openssl})
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_OPENSSL")
 endif()
 
+set(${theseTestsName}_test_files
+    ${theseTestsName}.c
+)
+
 include_directories(${SHARED_UTIL_REAL_TEST_FOLDER})
 
 set(${theseTestsName}_c_files
