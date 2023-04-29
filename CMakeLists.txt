@@ -108,7 +108,7 @@ endif()
 
 set(UHTTP_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
 
-set(use_cppunittest ON)
+set(use_cppunittest OFF)
 set_platform_files(${SHARED_UTIL_FOLDER})
 
 set(uhttp_c_files
