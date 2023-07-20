@@ -65,6 +65,9 @@ jobs:
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
 - job: windowsx64
   displayName: Windows x64
+  variables:
+    CodeQL.Enabled: true
+    CodeQL.Language: cpp
   pool:
     name: 'sdk-c--win-vs2017'
   steps:
