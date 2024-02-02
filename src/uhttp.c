@@ -244,6 +244,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                     LogError("Cannot malloc memory, size:%zu", malloc_size);
                     result = MU_FAILURE;
                     continueProcessing = false;
+                    headerValue = NULL;
                 }
                 else
                 {
