@@ -207,7 +207,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                 if (malloc_size == SIZE_MAX ||
                     (headerKey = (char*)malloc(malloc_size)) == NULL)
                 {
-                    LogError("Cannot malloc memory, size:%zu", malloc_size);
+                    LogError("Cannot malloc headerKey, size:%zu", malloc_size);
                     result = MU_FAILURE;
                     continueProcessing = false;
                 }
@@ -241,7 +241,7 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                 if (malloc_size == SIZE_MAX ||
                     (headerValue = (char*)malloc(malloc_size)) == NULL)
                 {
-                    LogError("Cannot malloc memory, size:%zu", malloc_size);
+                    LogError("Cannot malloc headerValue, size:%zu", malloc_size);
                     result = MU_FAILURE;
                     continueProcessing = false;
                     headerValue = NULL;
