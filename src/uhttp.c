@@ -948,7 +948,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
         {
             /* Codes_SRS_UHTTP_07_015: [uhttp_client_execute_request shall add the Content-Length to the request if the contentLength is > 0] */
             size_t fmtLen = safe_add_size_t(strlen(HTTP_CONTENT_LEN), HTTP_CRLF_LEN);
-            fmtLen = safe_add_size_t(fmtLen, 8);
+            fmtLen = safe_add_size_t(fmtLen, 25);
 
             size_t malloc_size = safe_add_size_t(fmtLen, 1);
             char* content;
