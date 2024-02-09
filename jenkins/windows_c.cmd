@@ -42,10 +42,10 @@ where msbuild
 
 if %build-platform% == x64 (
     echo ***Running CMAKE for Win64***
-    cmake %build-root% -LAH -Duse_cppunittest:BOOL=OFF -Drun_unittests:BOOL=ON -A x64
+    cmake %build-root% -LAH -Duse_cppunittest:BOOL=OFF -Drun_unittests:BOOL=ON -A x64 -G %VSVERSION%
 ) else (
     echo ***Running CMAKE for Win32***
-    cmake %build-root% -LAH -Duse_cppunittest:BOOL=OFF -Drun_unittests:BOOL=ON -A Win32
+    cmake %build-root% -LAH -Duse_cppunittest:BOOL=OFF -Drun_unittests:BOOL=ON -A Win32 -G %VSVERSION%
 )
 if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 
