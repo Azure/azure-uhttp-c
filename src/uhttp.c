@@ -19,6 +19,7 @@
 #include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_c_shared_utility/shared_util_options.h"
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 #define MAX_HOSTNAME        64
 #define TIME_MAX_BUFFER     16
@@ -202,9 +203,11 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                     free(headerKey);
                     headerKey = NULL;
                 }
-                headerKey = (char*)malloc(keyLen + 1);
-                if (headerKey == NULL)
+                size_t malloc_size = safe_add_size_t(keyLen, 1);
+                if (malloc_size == SIZE_MAX ||
+                    (headerKey = (char*)malloc(malloc_size)) == NULL)
                 {
+                    LogError("Cannot malloc headerKey, size:%zu", malloc_size);
                     result = MU_FAILURE;
                     continueProcessing = false;
                 }
@@ -231,12 +234,17 @@ static int process_header_line(const unsigned char* buffer, size_t len, size_t* 
                 // Remove leading spaces
                 while (*targetPos == 32) { targetPos++; }
 
-                size_t valueLen = (&buffer[index])-targetPos;
-                char* headerValue = (char*)malloc(valueLen+1);
-                if (headerValue == NULL)
+                size_t valueLen = safe_subtract_size_t((&buffer[index]), targetPos);
+                size_t malloc_size = safe_add_size_t(valueLen, 1);
+
+                char* headerValue;
+                if (malloc_size == SIZE_MAX ||
+                    (headerValue = (char*)malloc(malloc_size)) == NULL)
                 {
+                    LogError("Cannot malloc headerValue, size:%zu", malloc_size);
                     result = MU_FAILURE;
                     continueProcessing = false;
+                    headerValue = NULL;
                 }
                 else
                 {
@@ -870,12 +878,15 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
             }
             else
             {
-                size_t dataLen = strlen(header)+2;
-                char* sendData = malloc(dataLen+1);
-                if (sendData == NULL)
+                size_t dataLen = safe_add_size_t(strlen(header), 2);
+                size_t malloc_size = safe_add_size_t(dataLen, 1);
+
+                char* sendData;
+                if (malloc_size == SIZE_MAX ||
+                    (sendData = malloc(malloc_size)) == NULL)
                 {
                     result = MU_FAILURE;
-                    LogError("Failed in allocating header data");
+                    LogError("Failed in allocating header data, size:%zu", malloc_size);
                 }
                 else
                 {
@@ -884,7 +895,7 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
                         hostname_found = true;
                     }
 
-                    if (snprintf(sendData, dataLen+1, "%s\r\n", header) <= 0)
+                    if (snprintf(sendData, malloc_size, "%s\r\n", header) <= 0)
                     {
                         result = MU_FAILURE;
                         LogError("Failed in constructing header data");
@@ -905,16 +916,21 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
         if (!hostname_found)
         {
             // calculate the size of the host header
-            size_t host_len = strlen(HTTP_HOST) + strlen(hostname) + MAX_CONTENT_LENGTH + 2;
-            char* host_header = malloc(host_len + 1);
-            if (host_header == NULL)
+            size_t host_len = safe_add_size_t(strlen(HTTP_HOST), strlen(hostname));
+            host_len = safe_add_size_t(host_len, MAX_CONTENT_LENGTH);
+            host_len = safe_add_size_t(host_len, 2);
+
+            size_t malloc_size = safe_add_size_t(host_len, 1);
+            char* host_header;
+            if (malloc_size == SIZE_MAX ||
+                (host_header = malloc(malloc_size)) == NULL)
             {
-                LogError("Failed allocating host header");
+                LogError("Failed allocating host header, size:%zu", malloc_size);
                 result = MU_FAILURE;
             }
             else
             {
-                if (snprintf(host_header, host_len + 1, "%s: %s:%d\r\n", HTTP_HOST, hostname, port_num) <= 0)
+                if (snprintf(host_header, malloc_size, "%s: %s:%d\r\n", HTTP_HOST, hostname, port_num) <= 0)
                 {
                     LogError("Failed constructing host header");
                     result = MU_FAILURE;
@@ -931,11 +947,14 @@ static int construct_http_headers(HTTP_HEADERS_HANDLE http_header, size_t conten
         if (result == 0)
         {
             /* Codes_SRS_UHTTP_07_015: [uhttp_client_execute_request shall add the Content-Length to the request if the contentLength is > 0] */
-            size_t fmtLen = strlen(HTTP_CONTENT_LEN) + HTTP_CRLF_LEN + 8;
-            char* content = malloc(fmtLen+1);
-            if (content == NULL)
+            size_t fmtLen = safe_add_size_t(strlen(HTTP_CONTENT_LEN), HTTP_CRLF_LEN);
+            fmtLen = safe_add_size_t(fmtLen, 25);
+
+            size_t malloc_size = safe_add_size_t(fmtLen, 1);
+            char* content;
+            if ((content = malloc(malloc_size)) == NULL)
             {
-                LogError("Failed allocating chunk header");
+                LogError("Failed allocating chunk header, size:%zu", malloc_size);
                 result = MU_FAILURE;
             }
             else
@@ -986,16 +1005,20 @@ static STRING_HANDLE construct_http_data(HTTP_CLIENT_REQUEST_TYPE request_type, 
     }
     else
     {
-        size_t buffLen = strlen(HTTP_REQUEST_LINE_FMT) + strlen(method) + strlen(relative_path);
-        char* request = malloc(buffLen+1);
-        if (request == NULL)
+        size_t buffLen = safe_add_size_t(strlen(HTTP_REQUEST_LINE_FMT), strlen(method));
+        buffLen = safe_add_size_t(buffLen, strlen(relative_path));
+
+        size_t malloc_size = safe_add_size_t(buffLen, 1);
+        char* request;
+        if (malloc_size == SIZE_MAX ||
+            (request = malloc(malloc_size)) == NULL)
         {
             result = NULL;
-            LogError("Failure allocating Request data");
+            LogError("Failure allocating Request data, size:%zu", malloc_size);
         }
         else
         {
-            if (snprintf(request, buffLen + 1, HTTP_REQUEST_LINE_FMT, method, relative_path) <= 0)
+            if (snprintf(request, malloc_size, HTTP_REQUEST_LINE_FMT, method, relative_path) <= 0)
             {
                 result = NULL;
                 LogError("Failure writing request buffer");
