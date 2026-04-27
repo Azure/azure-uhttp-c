@@ -1,7 +1,13 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-cmake_minimum_required(VERSION 3.5)
+if(NOT DEFINED CMAKE_MINIMUM_REQUIRED_VERSION)
+    cmake_minimum_required(VERSION 3.18)
+endif()
+
+if (TARGET uhttp)
+    RETURN()
+endif()
 
 project(uhttp)
 
@@ -34,29 +40,36 @@ set(run_unittests OFF)
 set(skip_samples ON)
 
 if (NOT ${use_installed_dependencies})
-    if (NOT TARGET azure_macro_utils_c AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/azure-macro-utils-c/CMakeLists.txt")
-        add_subdirectory(deps/azure-macro-utils-c)
-        include_directories(${MACRO_UTILS_INC_FOLDER})
+    if ((NOT TARGET c_build_tools) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/c-build-tools/CMakeLists.txt))
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-build-tools)
+        set_default_build_options()
     endif()
-    if (NOT TARGET umock_c)
-        add_subdirectory(deps/umock-c)
-        include_directories(${MACRO_UTILS_INC_FOLDER})
-        include_directories(${UMOCK_C_INC_FOLDER})
+
+    if ((NOT TARGET macro_utils_c) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/macro-utils-c/CMakeLists.txt))
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/macro-utils-c)
     endif()
-    if (${original_run_e2e_tests} OR ${original_run_unittests})
-        if (NOT TARGET testrunnerswitcher)
-            add_subdirectory(deps/azure-c-testrunnerswitcher)
+
+    if ((NOT TARGET c_logging) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/c-logging/CMakeLists.txt))
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-logging)
+        if (NOT TARGET c_logging)
+            add_library(c_logging ALIAS c_logging_v2)
         endif()
-        if (NOT TARGET ctest)
-            add_subdirectory(deps/azure-ctest)
-        endif()
-        enable_testing()
     endif()
-    if (NOT TARGET aziotsharedutil AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/CMakeLists.txt")
-        add_subdirectory(deps/c-utility)
-        if (${original_run_unittests})
-            set(SHARED_UTIL_REAL_TEST_FOLDER ${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/tests/real_test_files CACHE INTERNAL "this is what needs to be included when doing test sources" FORCE)
-        endif()
+
+    if ((NOT TARGET ctest) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/ctest/CMakeLists.txt))
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/ctest)
+    endif()
+
+    if ((NOT TARGET testrunnerswitcher) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/c-testrunnerswitcher/CMakeLists.txt))
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-testrunnerswitcher)
+    endif()
+
+    if ((NOT TARGET umock_c) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/umock-c/CMakeLists.txt))
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/umock-c)
+    endif()
+
+    if ((NOT TARGET aziotsharedutil) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/CMakeLists.txt))
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
     endif()
 else()
     if (NOT azure_macro_utils_cFOUND)
@@ -73,6 +86,10 @@ else()
     include(${azure_c_shared_utility_DIR}/azure_c_shared_utilityFunctions.cmake)
     include(${azure_c_shared_utility_DIR}/azure_iot_build_rules.cmake)
 endif()
+
+include_directories(${CMAKE_CURRENT_LIST_DIR}/deps/macro-utils-c/inc)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/deps/umock-c/inc)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/deps/c-logging/v2/inc)
 
 set(run_e2e_tests ${original_run_e2e_tests})
 set(run_int_tests ${original_run_int_tests})
