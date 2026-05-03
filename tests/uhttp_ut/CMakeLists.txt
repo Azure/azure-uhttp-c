@@ -15,6 +15,10 @@ set(${theseTestsName}_test_files
     ${theseTestsName}.c
 )
 
+if(NOT DEFINED SHARED_UTIL_REAL_TEST_FOLDER OR "${SHARED_UTIL_REAL_TEST_FOLDER}" STREQUAL "")
+    set(SHARED_UTIL_REAL_TEST_FOLDER ${CMAKE_SOURCE_DIR}/deps/c-utility/tests/real_test_files)
+endif()
+
 include_directories(${SHARED_UTIL_REAL_TEST_FOLDER})
 
 set(${theseTestsName}_c_files
