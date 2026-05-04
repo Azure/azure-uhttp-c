@@ -16,7 +16,7 @@ mkdir -p $build_folder
 pushd $build_folder
 cmake ../.. -Drun_valgrind:BOOL=ON -Drun_unittests:bool=ON
 cmake --build . -- --jobs=$(nproc)
-ctest -C "debug" -V
+ctest -C "debug" -V --output-on-failure
 
 popd
 :

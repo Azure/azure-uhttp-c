@@ -16,5 +16,5 @@ mkdir -p $build_folder
 pushd $build_folder
 cmake ../.. -Drun_unittests:bool=ON -DCMAKE_C_FLAGS="-Wno-typedef-redefinition" -G Xcode
 cmake --build . -- --jobs=$CORES
-ctest -C "debug" -V
+ctest -C "debug" -V --output-on-failure
 popd

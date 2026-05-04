@@ -364,15 +364,10 @@ static LIST_ITEM_HANDLE my_singlylinkedlist_get_head_item(SINGLYLINKEDLIST_HANDL
 
 static LIST_ITEM_HANDLE my_singlylinkedlist_add(SINGLYLINKEDLIST_HANDLE list, const void* item)
 {
-    LIST_ITEM_HANDLE result;
     (void)list;
 
     const void** items = (const void**)my_gballoc_realloc((void*)g_list_items, (g_list_item_count + 1) * sizeof(item));
-    if (items == NULL)
-    {
-        result = NULL;
-    }
-    else
+    if (items != NULL)
     {
         g_list_items = items;
         g_list_items[g_list_item_count++] = item;
@@ -399,7 +394,6 @@ static int my_singlylinkedlist_remove(SINGLYLINKEDLIST_HANDLE list, LIST_ITEM_HA
 {
     (void)list;
     (void)item;
-    int found = 0;
 
     if (g_list_add_called)
     {
@@ -408,7 +402,6 @@ static int my_singlylinkedlist_remove(SINGLYLINKEDLIST_HANDLE list, LIST_ITEM_HA
         {
             if (g_list_items[i] == item)
             {
-                found = 1;
                 g_list_item_count--;
                 break;
             }

@@ -24,7 +24,7 @@ if [ $? != 0 ];then
 echo "Failure running build"
 fi
 
-ctest -C "debug" -V
+ctest -C "debug" -V --output-on-failure
 if [ $? != 0 ];then
 echo "Failure running tests"
 fi

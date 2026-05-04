@@ -16,5 +16,5 @@ mkdir -p $build_folder
 pushd $build_folder
 cmake ../.. -DOPENSSL_ROOT_DIR:PATH=/usr/local/opt/openssl -Duse_openssl:bool=ON -Drun_unittests:bool=ON -DCMAKE_C_FLAGS="-Wno-typedef-redefinition"
 cmake --build . -- --jobs=$CORES
-ctest -C "debug" -V
+ctest -C "debug" -V --output-on-failure
 popd
