@@ -24,4 +24,7 @@ compileTargetAsC99(uhttp_sample)
 
 target_link_libraries(uhttp_sample uhttp)
 linkSharedUtil(uhttp_sample)
+if (TARGET c_logging_v2)
+    target_link_libraries(uhttp_sample c_logging_v2)
+endif()
 
