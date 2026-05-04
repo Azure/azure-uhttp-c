@@ -24,7 +24,13 @@ if [ $? != 0 ];then
 echo "Failure running build"
 fi
 
-ctest -j $(nproc) -C "debug" -V --output-on-failure
+ctest -j $(nproc) -C "debug" -V --output-on-failure || {
+    echo '===== ctest failed; direct invocation =====';
+    find . -path '*/Testing*' -prune -o -type f \( -name '*_ut_exe' -o -name '*_ut' \) -executable -print 2>/dev/null | while read t; do
+        echo ">>> $t"; "$t" 2>&1 || echo "[exit=$?]";
+    done;
+    exit 1;
+}
 if [ $? != 0 ];then
 echo "Failure running ctest"
 fi

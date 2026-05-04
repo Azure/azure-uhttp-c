@@ -20,7 +20,13 @@ make --jobs=$CORES
 
 #use doctored openssl
 export LD_LIBRARY_PATH=/usr/local/ssl/lib
-ctest -j $CORES --output-on-failure
+ctest -j $CORES --output-on-failure || {
+    echo '===== ctest failed; direct invocation =====';
+    find . -path '*/Testing*' -prune -o -type f \( -name '*_ut_exe' -o -name '*_ut' \) -executable -print 2>/dev/null | while read t; do
+        echo ">>> $t"; "$t" 2>&1 || echo "[exit=$?]";
+    done;
+    exit 1;
+}
 export LD_LIBRARY_PATH=
 
 popd
