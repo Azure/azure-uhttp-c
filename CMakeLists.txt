@@ -19,7 +19,10 @@ option(run_int_tests "set run_int_tests to ON to run integration tests (default 
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(use_custom_heap "use externally defined heap functions instead of the malloc family" OFF)
-option(use_cppunittest "set use_cppunittest to ON to build CppUnitTest tests on Windows (default is ON)" ON)
+# CppUnitTest path is broken with new CMake/MSVC: c-utility's _testsonly_lib
+# forces /TP but CMake still emits /TC for .c sources -> STL1003 (yvals_core.h).
+# The plain CTest .exe path used when this is OFF builds and runs the same coverage.
+option(use_cppunittest "set use_cppunittest to ON to build CppUnitTest tests on Windows (default is OFF)" OFF)
 
 if(${use_custom_heap})
     add_definitions(-DGB_USE_CUSTOM_HEAP)
