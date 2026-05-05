@@ -23,16 +23,21 @@ set build-config=Debug
 set build-platform=Win32
 
 rem // parse arguments (currently only --platform is recognised)
+rem // NOTE: do NOT use shift inside an if() block - %1 is parse-time bound,
+rem // so the shifted value won't be visible inside the same parenthesised
+rem // block. Use labels instead.
 :args-loop
 if "%1" equ "" goto args-done
-if "%1" equ "--platform" (
-    shift
-    set build-platform=%1
-    if /I "%1" equ "x64" set CMAKE_DIR=uhttp_x64
-    if /I "%1" equ "Win32" set CMAKE_DIR=uhttp_win32
-    if /I "%1" equ "ARM" set CMAKE_DIR=uhttp_arm
-    if /I "%1" equ "ARM64" set CMAKE_DIR=uhttp_arm64
-)
+if /I "%1" equ "--platform" goto arg-platform
+shift
+goto args-loop
+:arg-platform
+shift
+set build-platform=%1
+if /I "%1" equ "x64" set CMAKE_DIR=uhttp_x64
+if /I "%1" equ "Win32" set CMAKE_DIR=uhttp_win32
+if /I "%1" equ "ARM" set CMAKE_DIR=uhttp_arm
+if /I "%1" equ "ARM64" set CMAKE_DIR=uhttp_arm64
 shift
 goto args-loop
 :args-done
