@@ -146,6 +146,12 @@ static int process_status_code_line(const unsigned char* buffer, size_t len, siz
         {
             if (spaceFound == 1)
             {
+                // Guard against reading past the end of the buffer. initSpace points
+                // just past the first space; ensure 3 bytes are available before copying.
+                if ((size_t)(initSpace - (const char*)buffer) + 3 > len)
+                {
+                    break;
+                }
                 (void)memcpy(status_code, initSpace, 3);
                 status_code[3] = '\0';
             }

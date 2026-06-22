@@ -1513,6 +1513,36 @@ TEST_FUNCTION(uhttp_client_onBytesReceived_buffer_NULL_fail)
     uhttp_client_destroy(clientHandle);
 }
 
+/* Tests_SRS_UHTTP_07_048: [ If any error is encountered on_bytes_received shall set the state to error. ] */
+// A status-line fragment containing two adjacent/early spaces, where the buffer ends within
+// 2 bytes of the status-code token, must not cause an out-of-bounds read in
+// process_status_code_line (CWE-125). The fragment is incomplete (no '\n'), so no message
+// callback shall be raised and the parser shall wait for additional bytes.
+TEST_FUNCTION(uhttp_client_onBytesReceived_status_line_short_fragment_no_oob_read)
+{
+    // arrange
+    HTTP_CLIENT_HANDLE clientHandle = uhttp_client_create(TEST_INTERFACE_DESC, TEST_CREATE_PARAM, on_error_callback, (void*)TEST_HTTP_EXAMPLE);
+    (void)uhttp_client_open(clientHandle, TEST_HOST_NAME, TEST_PORT_NUM, on_connection_callback, TEST_CONNECT_CONTEXT);
+    (void)uhttp_client_execute_request(clientHandle, HTTP_CLIENT_REQUEST_GET, "/", TEST_HTTP_HEADERS_HANDLE, (const unsigned char*)TEST_HTTP_CONTENT, TEST_HTTP_CONTENT_LENGTH, on_msg_recv_callback, TEST_EXECUTE_CONTEXT);
+    umock_c_reset_all_calls();
+
+    ASSERT_IS_NOT_NULL(g_onBytesRecv);
+
+    // A 3-byte fragment ending in two spaces: initSpace ends up at the last byte, leaving
+    // fewer than 3 bytes for the status-code copy. Run under ASan to catch the over-read.
+    const unsigned char short_status_fragment[] = { 'A', ' ', ' ' };
+
+    // act
+    g_onBytesRecv(g_onBytesRecv_ctx, short_status_fragment, sizeof(short_status_fragment));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, (int)g_http_cb_status_code);
+
+    // Cleanup
+    uhttp_client_close(clientHandle, on_closed_callback, NULL);
+    uhttp_client_destroy(clientHandle);
+}
+
 /* Tests_SRS_UHTTP_07_015: [on_bytes_received shall add the Content-Length http header item to the request.] */
 /* Tests_SRS_UHTTP_07_047: [ If context or buffer is NULL on_bytes_received shall do nothing. ] */
 /* Tests_SRS_UHTTP_07_048: [ If any error is encountered on_bytes_received shall set the state to error. ] */
