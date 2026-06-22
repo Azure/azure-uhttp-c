@@ -1286,6 +1286,11 @@ void uhttp_client_close(HTTP_CLIENT_HANDLE handle, ON_HTTP_CLOSED_CALLBACK on_cl
             BUFFER_delete(http_data->recv_msg.msg_body);
             http_data->recv_msg.msg_body = NULL;
         }
+        if (http_data->recv_msg.accrual_buff != NULL)
+        {
+            BUFFER_delete(http_data->recv_msg.accrual_buff);
+            http_data->recv_msg.accrual_buff = NULL;
+        }
     }
 }
 
