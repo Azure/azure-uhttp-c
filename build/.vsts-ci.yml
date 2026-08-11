@@ -15,10 +15,20 @@ resources:
   - repo: self
     clean: true
 
+variables:
+  # CodeQL is auto-injected into every job by the 1ES policy decorator. Turn it
+  # off globally here and opt in per job, because S360 records the *latest*
+  # snapshot per (repo, language) - so a database produced incidentally by a job
+  # that does not build the product silently replaces the one from the job that
+  # does. This repo's "Database failed to finalize or no source code was built!"
+  # entry in the CodeQL S360 report came from exactly that: the injected CodeQL
+  # in the 'Linux Ubuntu 24.04' job of the integrate-into-repo-uhttp pipeline.
+  # The 'windowsx64' job below opts back in for cpp, the only language this repo
+  # is graded on. See https://aka.ms/codeql3000 and https://aka.ms/sdlfaqcodeql.
+  Codeql.Enabled: false
+
 jobs:
 - job: checksubmodule
-  variables:
-    CodeQL.Enabled: false
   pool:
     vmImage: 'ubuntu-24.04'
   displayName: 'Check Submodules'
@@ -63,8 +73,10 @@ jobs:
 - job: windowsx64
   timeoutInMinutes: 90
   variables:
-    CodeQL.Enabled: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
-    CodeQL.Language: cpp
+    # Owns the 'cpp' CodeQL snapshot for this repo. Overrides the pipeline-level
+    # Codeql.Enabled: false. Only on master, so PR builds stay fast.
+    Codeql.Enabled: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+    Codeql.Language: cpp
   pool:
     vmImage: 'windows-2022'
   displayName: 'Windows x64'
@@ -268,7 +280,6 @@ jobs:
 - job: OSX
   timeoutInMinutes: 60
   variables:
-    CodeQL.Enabled: false
     CMAKE_POLICY_VERSION_MINIMUM: '3.5'
   pool:
     vmImage: 'macOS-14'
@@ -330,7 +341,6 @@ jobs:
 - job: xcodenative
   timeoutInMinutes: 60
   variables:
-    CodeQL.Enabled: false
     CMAKE_POLICY_VERSION_MINIMUM: '3.5'
   pool:
     vmImage: 'macOS-14'
