@@ -146,6 +146,12 @@ static int process_status_code_line(const unsigned char* buffer, size_t len, siz
         {
             if (spaceFound == 1)
             {
+                // Guard against reading past the end of the buffer. initSpace points
+                // just past the first space; ensure 3 bytes are available before copying.
+                if ((size_t)(initSpace - (const char*)buffer) + 3 > len)
+                {
+                    break;
+                }
                 (void)memcpy(status_code, initSpace, 3);
                 status_code[3] = '\0';
             }
@@ -1279,6 +1285,11 @@ void uhttp_client_close(HTTP_CLIENT_HANDLE handle, ON_HTTP_CLOSED_CALLBACK on_cl
         {
             BUFFER_delete(http_data->recv_msg.msg_body);
             http_data->recv_msg.msg_body = NULL;
+        }
+        if (http_data->recv_msg.accrual_buff != NULL)
+        {
+            BUFFER_delete(http_data->recv_msg.accrual_buff);
+            http_data->recv_msg.accrual_buff = NULL;
         }
     }
 }
