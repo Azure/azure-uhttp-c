@@ -73,7 +73,8 @@ jobs:
 - job: windowsx64
   timeoutInMinutes: 90
   variables:
-    CodeQL.Enabled: false
+    CodeQL.Enabled: true
+    CodeQL.Language: cpp
   pool:
     vmImage: 'windows-2022'
   displayName: 'Windows x64'
@@ -466,7 +467,7 @@ jobs:
         -Dskip_samples:BOOL=ON \
         -Duse_installed_dependencies:BOOL=OFF \
         -Duse_default_uuid:BOOL=ON \
-        -Duse_http:BOOL=OFF \
+        -Duse_builtin_httpapi:BOOL=ON \
         -Duse_openssl:BOOL=OFF \
         ..
       make -j$(nproc)
